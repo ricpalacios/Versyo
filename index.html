@@ -139,28 +139,19 @@ const CROWD_IMG = "https://i.ibb.co/fGZNc71C/Imagen1.jpg";
    VERSYO LOGO
 ═══════════════════════════════════════════ */
 function VLogo({ size = 36, onClick }) {
-  const id = `vl${size}${onClick ? "c" : ""}${Math.random().toString(36).slice(2, 6)}`;
   return (
-    <svg width={size} height={size * 1.08} viewBox="0 0 120 130" fill="none"
-      onClick={onClick} style={onClick ? { cursor: "pointer", flexShrink: 0 } : { flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={`${id}a`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="#1a52c7" /><stop offset="30%"  stopColor="#7b2fbe" />
-          <stop offset="60%"  stopColor="#e0305a" /><stop offset="100%" stopColor="#f06a1e" />
-        </linearGradient>
-        <linearGradient id={`${id}b`} x1="100%" y1="0%" x2="10%" y2="100%">
-          <stop offset="0%"   stopColor="#c030c8" /><stop offset="50%"  stopColor="#e8395a" />
-          <stop offset="100%" stopColor="#f06a1e" />
-        </linearGradient>
-        <linearGradient id={`${id}c`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#d03560" /><stop offset="100%" stopColor="#e8392a" />
-        </linearGradient>
-      </defs>
-      <path d="M18 10 C6 10 4 26 12 34 L52 70 L52 50 L28 26 C22 20 22 10 30 10 Z" fill={`url(#${id}b)`} opacity="0.95" />
-      <path d="M102 10 C114 10 116 26 108 34 L68 70 L68 50 L92 26 C98 20 98 10 90 10 Z" fill={`url(#${id}a)`} opacity="0.95" />
-      <rect x="44" y="62" width="32" height="42" rx="16" fill={`url(#${id}c)`} />
-      <ellipse cx="60" cy="70" rx="16" ry="12" fill={`url(#${id}c)`} opacity="0.65" />
-    </svg>
+    <img
+      src="https://i.ibb.co/sdhz278n/Logo-Versyo.png"
+      width={size}
+      height={size}
+      onClick={onClick}
+      style={{
+        objectFit: "contain",
+        flexShrink: 0,
+        cursor: onClick ? "pointer" : "default",
+        display: "block",
+      }}
+    />
   );
 }
 
