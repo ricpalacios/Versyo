@@ -23,6 +23,10 @@
     input::placeholder{color:rgba(255,255,255,0.35)!important;}
     ::-webkit-scrollbar{width:0;height:0;}
     @keyframes spin{to{transform:rotate(360deg)}}
+    /* Ocultar barra de estado falsa en móvil */
+    @media (max-width:499px){
+      .versyo-statusbar{ display:none !important; }
+    }
 
     /* ── MÓVIL: pantalla completa fija, sin marco ── */
     .versyo-outer{
@@ -372,7 +376,7 @@ function ProfileCard({ person, onClose }) {
 ═══════════════════════════════════════════ */
 function StatusBar() {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 22px 0", flexShrink: 0, zIndex: 10 }}>
+    <div className="versyo-statusbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 22px 0", flexShrink: 0, zIndex: 10 }}>
       <span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>9:41</span>
       <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
         <svg width="16" height="11" viewBox="0 0 16 11">{[0, 4.5, 9, 13.5].map((x, i) => <rect key={i} x={x} y={11 - (i + 1) * 2.7} width={3} height={(i + 1) * 2.7} rx={1} fill="rgba(255,255,255,.85)" />)}</svg>
