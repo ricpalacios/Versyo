@@ -132,7 +132,7 @@ const NET_INFO = {
 const NETS_PRO  = ["linkedin", "twitter"];
 const NETS_OCIO = ["instagram", "tiktok", "facebook", "tinder"];
 
-const FACE_IMG  = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
+const FACE_IMG  = "https://i.ibb.co/RkpXp8Yp/Imagen-Laura.jpg";
 const CROWD_IMG = "https://i.ibb.co/fGZNc71C/Imagen1.jpg";
 
 /* ═══════════════════════════════════════════
@@ -825,13 +825,7 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>UWB</span>
           </div>
         )}
-        {/* Frase centrada verticalmente */}
-        {(phase === "idle" || phase === "scanning") && !qFocus && !query && !selectedPerson && (
-          <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center", zIndex: 10, pointerEvents: "none" }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.85)", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}>Enfoca a la persona</div>
-            {phase === "scanning" && <div style={{ marginTop: 6, fontSize: 10, color: "rgba(255,255,255,0.6)" }}>Escaneando...</div>}
-          </div>
-        )}
+        {/* Frase centrada eliminada — unificada abajo */}
         {/* Search bar */}
         <div style={{ position: "absolute", top: 10, left: 12, right: 12, zIndex: 25 }} onClick={e => e.stopPropagation()}>
           <div style={{ background: "rgba(4,4,20,0.9)", border: `1px solid ${qFocus ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.14)"}`, borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(20px)" }}>
@@ -879,8 +873,8 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
         )}
         <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9, whiteSpace: "nowrap", pointerEvents: "none" }}>
           <div style={{ background: "rgba(0,0,0,0.65)", borderRadius: 20, padding: "5px 14px" }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.88)" }}>
-              {phase === "idle" ? "Buscando perfiles cercanos" : phase === "scanning" ? "Identificando..." : phase === "found" ? "Perfil identificado" : ""}
+            <span style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.88)", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}>
+              {phase === "idle" ? "Enfoca a la persona que quieres reconocer" : phase === "scanning" ? "Identificando..." : phase === "found" ? "Perfil identificado" : ""}
             </span>
           </div>
         </div>
