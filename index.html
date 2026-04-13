@@ -286,7 +286,7 @@ function ProfileCard({ person, onClose }) {
   useEffect(() => { const t = setTimeout(() => setVisible(true), 40); return () => clearTimeout(t); }, []);
 
   return (
-    <div style={{ position: "absolute", bottom: 90, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 14}px) scale(${visible ? 1 : 0.96})`, opacity: visible ? 1 : 0, transition: "all 0.5s cubic-bezier(.34,1.4,.64,1)", width: 292, zIndex: 22 }}>
+    <div style={{ position: "absolute", bottom: 58, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 14}px) scale(${visible ? 1 : 0.96})`, opacity: visible ? 1 : 0, transition: "all 0.5s cubic-bezier(.34,1.4,.64,1)", width: 292, zIndex: 22 }}>
       <div style={{ background: "rgba(8,6,28,0.92)", border: "1px solid rgba(180,80,255,0.5)", borderRadius: 22, padding: "15px 16px 17px", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 0 40px rgba(180,80,255,0.22)", position: "relative", overflow: "visible" }}>
         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1.5, background: "linear-gradient(90deg,transparent,rgba(180,80,255,0.9),rgba(240,100,160,0.7),transparent)", borderRadius: "0 0 2px 2px" }} />
         {/* Cabecera */}
@@ -306,7 +306,14 @@ function ProfileCard({ person, onClose }) {
               {person.isFamous && <div style={{ background: "rgba(245,197,24,0.15)", border: "1px solid rgba(245,197,24,0.4)", borderRadius: 10, padding: "2px 7px" }}><span style={{ fontSize: 9, fontWeight: 700, color: "#f5c518" }}>VERIFICADO</span></div>}
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{person.role || ""}</div>
-            {person.fw && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{person.fw} seguidores</div>}
+            {person.fw && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
+              {person.nets && person.nets.includes("linkedin") && (
+                <div style={{ width: 16, height: 16, borderRadius: 4, background: "#0a66c2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z" /></svg>
+                </div>
+              )}
+              <span>{person.fw} seguidores</span>
+            </div>}
           </div>
           <CloseBtn onClick={onClose} />
         </div>
