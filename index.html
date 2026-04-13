@@ -110,12 +110,12 @@ const CHAT_MESSAGES = [
 ];
 
 const FAMOUS_DB = [
-  { id: "cr", n: "Cristiano Ronaldo", h: "@cristiano",    col: "#1d4ed8", fw: "635M",  role: "Futbolista · Al Nassr",   nets: ["instagram","tiktok","twitter","facebook"], isFamous: true },
-  { id: "r",  n: "Rosalía",           h: "@rosalia",      col: "#c026d3", fw: "14.2M", role: "Artista · Grammy",         nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "ai", n: "Aitana",            h: "@aitana",       col: "#e879f9", fw: "9.8M",  role: "Cantante · OT",            nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "ib", n: "Ibai Llanos",       h: "@ibai",         col: "#7c3aed", fw: "12.8M", role: "Streamer",                 nets: ["tiktok","twitter","facebook"],              isFamous: true },
-  { id: "bm", n: "Bad Bunny",         h: "@badbunny",     col: "#16a34a", fw: "45.2M", role: "Artista · Reggaeton",      nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "zd", n: "Zendaya",           h: "@zendaya",      col: "#b45309", fw: "178M",  role: "Actriz · Cantante",        nets: ["instagram","twitter","tiktok"],             isFamous: true },
+  { id: "cr", n: "Cristiano Ronaldo", h: "@cristiano",    col: "#1d4ed8", fw: "635M",  role: "Futbolista · Al Nassr",   nets: ["instagram","tiktok","twitter","facebook"], isFamous: true, img: "https://i.ibb.co/Q3Xb6LWs/Ronaldo.jpg" },
+  { id: "r",  n: "Rosalía",           h: "@rosalia",      col: "#c026d3", fw: "14.2M", role: "Artista · Grammy",         nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/XZ24zFDJ/rosalia.jpg" },
+  { id: "ai", n: "Aitana",            h: "@aitana",       col: "#e879f9", fw: "9.8M",  role: "Cantante · OT",            nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/B5FnwdVX/aitana.jpg" },
+  { id: "ib", n: "Ibai Llanos",       h: "@ibai",         col: "#7c3aed", fw: "12.8M", role: "Streamer",                 nets: ["tiktok","twitter","facebook"],              isFamous: true, img: "https://i.ibb.co/mFvMvV9J/ibai.jpg" },
+  { id: "bm", n: "Bad Bunny",         h: "@badbunny",     col: "#16a34a", fw: "45.2M", role: "Artista · Reggaeton",      nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/yBcfM8fw/bad-bunny.jpg" },
+  { id: "zd", n: "Zendaya",           h: "@zendaya",      col: "#b45309", fw: "178M",  role: "Actriz · Cantante",        nets: ["instagram","twitter","tiktok"],             isFamous: true, img: "https://i.ibb.co/7d54sN8r/zendaya.jpg" },
   { id: "mr", n: "Marc Roca",         h: "@marcroca",     col: "#6366f1", fw: "1.2M",  role: "Futbolista · Real Betis",  nets: ["instagram","twitter"],                     isFamous: true },
   { id: "am", n: "Alejandro Sanz",    h: "@alejandrosanz",col: "#0891b2", fw: "8.1M",  role: "Cantante",                 nets: ["instagram","twitter","facebook"],           isFamous: true },
 ];
@@ -847,7 +847,10 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
               {results.map((r, i) => (
                 <div key={r.id} onClick={() => { setQuery(r.n); setQFocus(false); setSelectedPerson(r); }}
                   style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 14px", cursor: "pointer", borderBottom: i < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{r.n[0]}</div>
+                  {r.img
+                    ? <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundImage: `url(${r.img})`, backgroundSize: "cover", backgroundPosition: "center top", flexShrink: 0 }} />
+                    : <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{r.n[0]}</div>
+                  }
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{r.n}</span>
