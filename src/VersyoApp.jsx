@@ -1,4 +1,77 @@
-import { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+  <meta name="theme-color" content="#03030c"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Versyo"/>
+  <meta name="description" content="Versyo — The Visual Identity Protocol"/>
+  <title>Versyo</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{
+      height:100%;
+      background:#03030c;
+      overflow:hidden;
+      -webkit-tap-highlight-color:transparent;
+      -webkit-touch-callout:none;
+    }
+    #root{height:100%;}
+    input{-webkit-appearance:none;background:transparent!important;color:#fff!important;}
+    input::placeholder{color:rgba(255,255,255,0.35)!important;}
+    ::-webkit-scrollbar{width:0;height:0;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── MÓVIL: pantalla completa fija, sin marco ── */
+    .versyo-outer{
+      width:100%;
+      height:100%;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      font-family:-apple-system,"SF Pro Display",BlinkMacSystemFont,sans-serif;
+      color:#fff;
+    }
+    .versyo-shell{
+      width:100%;
+      height:100%;
+      background:#03030c;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+
+    /* ── PC (pantalla >= 500px): muestra el marco simulado ── */
+    @media (min-width:500px){
+      body{overflow:auto;}
+      html,body{height:auto;min-height:100%;}
+      #root{height:auto;min-height:100%;display:flex;justify-content:center;align-items:flex-start;padding:20px 8px 24px;}
+      .versyo-outer{
+        width:auto;
+        height:auto;
+        padding:0;
+      }
+      .versyo-shell{
+        width:364px;
+        height:782px;
+        border-radius:48px;
+        border:8px solid #0c0c1e;
+        box-shadow:0 32px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.06);
+        flex-shrink:0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
 /* ═══════════════════════════════════════════
    DESIGN TOKENS
@@ -52,7 +125,7 @@ const NETS_PRO  = ["linkedin", "twitter"];
 const NETS_OCIO = ["instagram", "tiktok", "facebook", "tinder"];
 
 const FACE_IMG  = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
-const CROWD_IMG = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200";
+const CROWD_IMG = "https://i.ibb.co/fGZNc71C/Imagen1.jpg";
 
 /* ═══════════════════════════════════════════
    VERSYO LOGO
@@ -1074,7 +1147,7 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
 /* ═══════════════════════════════════════════
    ROOT APP
 ═══════════════════════════════════════════ */
-export default function VersyoApp() {
+function VersyoApp() {
   const [screen, setScreen] = useState("ob");
   const [tab, setTab] = useState("finder");
   const [mode, setMode] = useState("pro");
@@ -1083,8 +1156,8 @@ export default function VersyoApp() {
   const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "18px 8px 22px", fontFamily: "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif", color: "#fff" }}>
-      <div style={{ width: 364, height: 782, background: BG, borderRadius: 48, border: "8px solid #0c0c1e", overflow: "hidden", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div className="versyo-outer">
+      <div className="versyo-shell">
         <StatusBar />
         {screen === "ob"          && <OnboardingScreen onDone={() => setScreen("auth")} />}
         {screen === "auth"        && <AuthGateScreen onLogin={() => setScreen("login")} onRegister={() => setScreen("reg_consent")} />}
@@ -1106,3 +1179,11 @@ export default function VersyoApp() {
     </div>
   );
 }
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(VersyoApp)
+);
+  </script>
+</body>
+</html>
