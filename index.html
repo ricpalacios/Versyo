@@ -26,6 +26,10 @@
     /* Ocultar barra de estado falsa en móvil */
     @media (max-width:499px){
       .versyo-statusbar{ display:none !important; }
+      /* Respetar la barra de estado real del iPhone/Android */
+      .versyo-shell{
+        padding-top: env(safe-area-inset-top, 44px);
+      }
     }
 
     /* ── MÓVIL: pantalla completa fija, sin marco ── */
