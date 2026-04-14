@@ -150,7 +150,7 @@ const T = {
     langPickLabel: "Continuar en", langEs: "Español", langEn: "English",
     tagBio: "Biometría",
     // Auth
-    authSubtitle: "{t.authSubtitle}",
+    authSubtitle: "Tu identidad visual, siempre bajo tu control",
     authUsers: "+12K usuarios",
     authTagline1: "En Versyo no buscas personas,", authTagline2: "las encuentras.",
     signUp: "Regístrate", logIn: "Identifícate",
@@ -160,7 +160,7 @@ const T = {
     verifying: "Verificando...", enter: "Entrar", back: "Volver",
     // Register
     consent: "Consentimiento", biometric: "Biométrico",
-    consentBody: "{t.consentBody}",
+    consentBody: "Al continuar, aceptas que VERSYO procese tus datos biométricos para reconocerte en tiempo real, de acuerdo con el RGPD y el AI Act UE. Puedes retirar tu consentimiento en Ajustes.",
     acceptContinue: "Acepto y continuar",
     captureFace: "Captura tu rostro",
     captureInstr: "Sitúa tu cara dentro del marco. Gira ligeramente la cabeza.",
@@ -182,7 +182,7 @@ const T = {
     invisibleMsg: "Cambia a un modo activo para poder realizar búsquedas.",
     goToMyVersyon: "Ir a Mi Versyon →",
     selectPhoto: "Selecciona una foto",
-    galleryInstr: "{t.galleryInstr}",
+    galleryInstr: "Elige una imagen de tu galería para identificar a la persona",
     // ProfileCard
     verifiedLabel: "VERIFICADO",
     tapToAccess: "Perfiles verificados · Toca para acceder",
@@ -192,13 +192,14 @@ const T = {
     whenAccepts: (name) => `Cuando ${name} acepte podrás chatear en Versyo`,
     cancelRequest: "Cancelar solicitud",
     // Messages
-    messagesTitle: "Mensajes", conversations: "conversaciones", unread: "{t.unread}",
+    messagesTitle: "Mensajes", conversations: "conversaciones", unread: "sin leer",
     backBtn: "← Atrás", online: "En línea", offline: "Desconectado",
     connectedToday: "Conectados a través de Versyo · Hoy",
     writeMsg: "Escribe un mensaje...",
     // Profile
     myVersyon: "Mi Versyon", activeMode: "Mi Versyon — Modo activo",
     oneModeMsg: "un modo activo",
+    oneModePrefix: "Solo",
     oneModeExpl: "a la vez.",
     upgradeGold: "Pásate a Versyo Gold",
     yourProfile: "Tu perfil Versyo", verifiedBioGdpr: "Biometría verificada · GDPR",
@@ -229,7 +230,7 @@ const T = {
     // Net modal
     verifiedIdentity: "Identidad verificada Versyo",
     launchingIdentity: (label) => `Versyo está lanzando tu identidad verificada en ${label}...`,
-    audienceMsg: "{t.audienceMsg}",
+    audienceMsg: "Tu audiencia te encontrará aquí primero. Sin cuentas falsas. Sin fricción.",
     profileActive: "Perfil verificado y activo en Versyo",
     openVerified: (label) => `Abrir ${label} verificado →`,
     closeBtn: "Cerrar",
@@ -307,7 +308,7 @@ const T = {
     connectedToday: "Connected through Versyo · Today",
     writeMsg: "Write a message...",
     myVersyon: "My Versyon", activeMode: "My Versyon — Active mode",
-    oneModeMsg: "one active mode", oneModeExpl: "at a time.",
+    oneModeMsg: "one active mode", oneModePrefix: "Only", oneModeExpl: "at a time.",
     upgradeGold: "Upgrade to Versyo Gold",
     yourProfile: "Your Versyo profile", verifiedBioGdpr: "Verified biometrics · GDPR",
     modeLabel: "Mode",
@@ -1255,7 +1256,7 @@ function MensajesScreen({ onReset, t }) {
   return (
     <div style={{ flex: 1, overflow: "auto", padding: "4px 15px 14px" }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 11 }}>
-        {CONVOS.length} {t.conversations}{total > 0 ? ` · ${total} {t.unread}` : ""}
+        {CONVOS.length} {t.conversations}{total > 0 ? ` · ${total} ${t.unread}` : ""}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, overflow: "hidden" }}>
         {CONVOS.map((c, i) => (
@@ -1338,7 +1339,7 @@ function ProfileScreen({ mode, onModeChange, onReset, t, lang, onLang }) {
       <div style={{ padding: "0 14px", marginBottom: 18 }}>
         <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{t.activeMode}</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 11, padding: "8px 12px", lineHeight: 1.6 }}>
-          Solo <strong style={{ color: "#fff" }}>{t.oneModeMsg}</strong> {t.oneModeExpl}
+          {t.oneModePrefix} <strong style={{ color: "#fff" }}>{t.oneModeMsg}</strong> {t.oneModeExpl}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {MODES.map(v => {
