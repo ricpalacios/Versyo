@@ -116,8 +116,8 @@ const FAMOUS_DB = [
   { id: "ib", n: "Ibai Llanos",       h: "@ibai",         col: "#7c3aed", fw: "12.8M", role: "Streamer",                 nets: ["tiktok","twitter","facebook"],              isFamous: true, img: "https://i.ibb.co/mFvMvV9J/ibai.jpg" },
   { id: "bm", n: "Bad Bunny",         h: "@badbunny",     col: "#16a34a", fw: "45.2M", role: "Artista · Reggaeton",      nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/yBcfM8fw/bad-bunny.jpg" },
   { id: "zd", n: "Zendaya",           h: "@zendaya",      col: "#b45309", fw: "178M",  role: "Actriz · Cantante",        nets: ["instagram","twitter","tiktok"],             isFamous: true, img: "https://i.ibb.co/7d54sN8r/zendaya.jpg" },
-  { id: "mr", n: "Marc Roca",         h: "@marcroca",     col: "#6366f1", fw: "1.2M",  role: "Futbolista · Real Betis",  nets: ["instagram","twitter"],                     isFamous: true },
-  { id: "am", n: "Alejandro Sanz",    h: "@alejandrosanz",col: "#0891b2", fw: "8.1M",  role: "Cantante",                 nets: ["instagram","twitter","facebook"],           isFamous: true },
+  { id: "mr", n: "Marc Roca",         h: "@marcroca",     col: "#6366f1", fw: "1.2M",  role: "Futbolista · Real Betis",  nets: ["instagram","twitter"],                     isFamous: true, img: "https://i.ibb.co/fzhnvSGx/marc-roca.jpg" },
+  { id: "am", n: "Alejandro Sanz",    h: "@alejandrosanz",col: "#0891b2", fw: "8.1M",  role: "Cantante",                 nets: ["instagram","twitter","facebook"],           isFamous: true, img: "https://i.ibb.co/M5699jSG/alejandro-sanz.jpg" },
 ];
 
 const NET_INFO = {
@@ -134,6 +134,14 @@ const NETS_OCIO = ["instagram", "tiktok", "facebook", "tinder"];
 
 const FACE_IMG  = "https://i.ibb.co/RkpXp8Yp/Imagen-Laura.jpg";
 const CROWD_IMG = "https://i.ibb.co/fGZNc71C/Imagen1.jpg";
+
+const GALLERY_IMGS = [
+  "https://i.ibb.co/xq6YWfMJ/Whats-App-Image-2026-04-14-at-10-15-54.jpg",
+  "https://i.ibb.co/84jWZcr2/Whats-App-Image-2026-04-14-at-10-15-54-1.jpg",
+  "https://i.ibb.co/GB43KpJ/Whats-App-Image-2026-04-14-at-10-15-55.jpg",
+  "https://i.ibb.co/fLPj7xx/Whats-App-Image-2026-04-14-at-10-15-55-1.jpg",
+];
+const RICARDO_DATA = { n: "Ricardo Palacios", role: "CEO · Versyo", img: GALLERY_IMGS[0], fw: "12.3K", nets: ["linkedin", "instagram", "twitter"], isFamous: false };
 
 /* ═══════════════════════════════════════════
    VERSYO LOGO
@@ -780,23 +788,37 @@ function GoldModal({ onClose }) {
    handleScan limpia todo (query, selectedPerson, fase)
    — funciona tanto desde lupa central como desde NavBar
 ═══════════════════════════════════════════ */
-function BuscarScreen({ mode, onReset, onGoProfile }) {
+function BuscarScreen({ mode, onReset, onGoProfile, scanResetKey }) {
   const [phase, setPhase] = useState("idle");
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [query, setQuery] = useState("");
   const [qFocus, setQFocus] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryPerson, setGalleryPerson] = useState(null);
   const scanRef = useRef(null);
 
   const results = query.length > 0
-    ? FAMOUS_DB.filter(x => x.n.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
-    : qFocus ? FAMOUS_DB.slice(0, 6) : [];
+    ? FAMOUS_DB.filter(x => x.n.toLowerCase().includes(query.toLowerCase()))
+    : qFocus ? FAMOUS_DB : [];
 
-  // Limpia pantalla completa + lanza escaneo
-  // Llamado tanto desde la lupa central como desde NavBar al retomar el tab
+  useEffect(() => {
+    if (scanResetKey > 0) {
+      setQuery("");
+      setSelectedPerson(null);
+      setQFocus(false);
+      setPhase("idle");
+      setShowGallery(false);
+      setGalleryPerson(null);
+      clearTimeout(scanRef.current);
+    }
+  }, [scanResetKey]);
+
   const handleScan = () => {
     setQuery("");
     setSelectedPerson(null);
     setQFocus(false);
+    setShowGallery(false);
+    setGalleryPerson(null);
     if (mode === "invisible") {
       setPhase("invwarn");
       setTimeout(() => setPhase(p => p === "invwarn" ? "idle" : p), 4000);
@@ -809,8 +831,13 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
     scanRef.current = setTimeout(() => setPhase("found"), 2600);
   };
 
-  const handleClose = () => { setPhase("idle"); setSelectedPerson(null); };
+  const handleClose = () => { setPhase("idle"); setSelectedPerson(null); setGalleryPerson(null); };
   useEffect(() => () => clearTimeout(scanRef.current), []);
+
+  const handleGalleryPick = () => {
+    setShowGallery(false);
+    setGalleryPerson(RICARDO_DATA);
+  };
 
   const lauraData = { n: "Laura Gómez", role: "CMO · Web3 & Fintech", img: FACE_IMG, fw: "82.4K", nets: ["linkedin", "instagram", "tiktok"], isFamous: false };
 
@@ -818,7 +845,7 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <PageHeader title="Buscar" onReset={onReset} />
       {/* Cámara */}
-      <div onClick={() => { if (phase === "idle" && !selectedPerson && !qFocus) handleScan(); }} style={{ flex: 1, position: "relative", overflow: "hidden", cursor: (phase === "found" || phase === "invwarn" || selectedPerson || qFocus) ? "default" : "crosshair" }}>
+      <div onClick={() => { if (phase === "idle" && !selectedPerson && !qFocus && !showGallery && !galleryPerson) handleScan(); }} style={{ flex: 1, position: "relative", overflow: "hidden", cursor: (phase === "found" || phase === "invwarn" || selectedPerson || qFocus || showGallery || galleryPerson) ? "default" : "crosshair" }}>
         <img src={CROWD_IMG} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.32) blur(1px)" }} onError={e => e.target.style.display = "none"} />
         {(phase === "scanning" || phase === "found") && (
           <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-58%)", width: 190, height: 190, overflow: "hidden", zIndex: 3, borderRadius: 6 }}>
@@ -868,8 +895,9 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
           )}
         </div>
         <ScanFrame phase={phase} />
-        {phase === "found" && <ProfileCard person={lauraData} onClose={handleClose} />}
+        {phase === "found" && !galleryPerson && <ProfileCard person={lauraData} onClose={handleClose} />}
         {selectedPerson && <ProfileCard person={selectedPerson} onClose={() => setSelectedPerson(null)} />}
+        {galleryPerson && <ProfileCard person={galleryPerson} onClose={handleClose} />}
         {phase === "invwarn" && (
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "calc(100% - 32px)", zIndex: 20 }} onClick={e => e.stopPropagation()}>
             <div onClick={onGoProfile} style={{ background: "rgba(4,4,20,0.95)", border: "1px solid rgba(245,56,90,0.5)", borderRadius: 18, padding: "22px 18px", textAlign: "center", cursor: "pointer" }}>
@@ -877,6 +905,29 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: 14 }}>Cambia a un modo activo para poder realizar búsquedas.</div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: GB, borderRadius: 20, padding: "8px 18px" }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Ir a Mi Versyon →</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Galería modal */}
+        {showGallery && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 30, display: "flex", flexDirection: "column" }} onClick={() => setShowGallery(false)}>
+            <div onClick={e => e.stopPropagation()} style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "16px 18px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Selecciona una foto</div>
+                <CloseBtn onClick={() => setShowGallery(false)} />
+              </div>
+              <div style={{ padding: "0 14px 14px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                Elige una imagen de tu galería para identificar a la persona
+              </div>
+              <div style={{ flex: 1, padding: "0 14px 14px", overflow: "auto" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {GALLERY_IMGS.map((src, i) => (
+                    <div key={i} onClick={handleGalleryPick} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)", transition: "border-color 0.2s" }}>
+                      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -889,13 +940,21 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
           </div>
         </div>
       </div>
-      {/* Lupa central — también limpia y escanea */}
-      <div style={{ background: "rgba(3,3,12,0.98)", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "11px 20px 13px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
+      {/* Barra inferior: botón galería + lupa central */}
+      <div style={{ background: "rgba(3,3,12,0.98)", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "11px 20px 13px", display: "flex", justifyContent: "center", alignItems: "center", gap: 24, flexShrink: 0 }}>
+        <button onClick={() => { if (mode !== "invisible") setShowGallery(true); }} style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </button>
         <button onClick={handleScan} style={{ width: 70, height: 70, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.9)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: phase === "scanning" ? "0 0 0 10px rgba(0,220,200,0.1)" : "none", transition: "box-shadow 0.4s" }}>
           <div style={{ width: 54, height: 54, borderRadius: "50%", background: phase === "scanning" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.94)", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.25s" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={phase === "scanning" ? "rgba(15,15,35,0.5)" : "#0d0d1f"} strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           </div>
         </button>
+        <div style={{ width: 48, height: 48 }} />
       </div>
     </div>
   );
@@ -1148,9 +1207,17 @@ function VersyoApp() {
   const [screen, setScreen] = useState("ob");
   const [tab, setTab] = useState("finder");
   const [mode, setMode] = useState("pro");
+  const [scanResetKey, setScanResetKey] = useState(0);
 
   const totalUnread = CONVOS.reduce((s, c) => s + c.u, 0);
   const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); };
+
+  const handleTab = (id) => {
+    if (id === "finder" && tab === "finder") {
+      setScanResetKey(k => k + 1);
+    }
+    setTab(id);
+  };
 
   return (
     <div className="versyo-outer">
@@ -1166,10 +1233,10 @@ function VersyoApp() {
           <>
             {tab === "chat"    && <PageHeader title="Mensajes" onReset={reset} />}
             {tab === "profile" && <PageHeader title="Mi Versyon" onReset={reset} />}
-            {tab === "finder"  && <BuscarScreen mode={mode} onReset={reset} onGoProfile={() => setTab("profile")} />}
+            {tab === "finder"  && <BuscarScreen mode={mode} onReset={reset} onGoProfile={() => setTab("profile")} scanResetKey={scanResetKey} />}
             {tab === "chat"    && <MensajesScreen onReset={reset} />}
             {tab === "profile" && <ProfileScreen mode={mode} onModeChange={setMode} onReset={reset} />}
-            <NavBar tab={tab} onTab={setTab} unread={totalUnread} />
+            <NavBar tab={tab} onTab={handleTab} unread={totalUnread} />
           </>
         )}
       </div>
