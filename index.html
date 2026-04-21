@@ -1039,9 +1039,9 @@ function BuscarScreen({ mode, onReset, onGoProfile, scanResetKey, i }) {
           {results.length > 0 && !selectedPerson && (
             <div style={{ marginTop: 4, background: "rgba(4,4,22,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, overflow: "hidden", backdropFilter: "blur(20px)", maxHeight: 260, overflowY: "auto" }}>
               {!query && <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 600, color: "rgba(157,92,245,0.8)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{i.featured}</div>}
-              {results.map((r, i) => (
+              {results.map((r, idx) => (
                 <div key={r.id} onClick={() => { setQuery(r.n); setQFocus(false); setSelectedPerson(r); }}
-                  style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 14px", cursor: "pointer", borderBottom: i < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 14px", cursor: "pointer", borderBottom: idx < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
                   {r.img
                     ? <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundImage: `url(${r.img})`, backgroundSize: "cover", backgroundPosition: "center top", flexShrink: 0 }} />
                     : <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{r.n[0]}</div>
