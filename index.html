@@ -87,6 +87,12 @@ const { useState, useEffect, useRef } = React;
 const BG = "#03030c";
 const GB = "linear-gradient(135deg,#9d5cf5,#f5385a,#ff6b35)";
 
+/* ═══════════════════════════════════════════
+   CONTRASEÑA DE ACCESO AL PROTOTIPO
+   Cámbiala cuando quieras "caducar" el acceso.
+═══════════════════════════════════════════ */
+const ACCESS_PASS = "versyo2026";
+
 const OB_STEPS = [
   { isSplash: true, cta: "Descubrir Versyo →" },
   { title: "En Versyo no buscas personas,", hl: "las encuentras.", body: "Apunta la cámara a quien tienes delante y descubre su identidad digital al instante, siempre bajo su consentimiento.", cta: "Siguiente" },
@@ -568,6 +574,126 @@ function PageHeader({ title, onReset }) {
     <div style={{ padding: "6px 18px 10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ fontSize: 19, fontWeight: 700, color: "#fff", letterSpacing: "-0.015em" }}>{title}</div>
       <VLogo size={40} onClick={onReset} />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ACCESS GATE — pantalla de contraseña al iniciar
+═══════════════════════════════════════════ */
+function AccessGateScreen({ onUnlock }) {
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
+  const [, force] = useState(0);
+
+  const isLocked = Date.now() < lockedUntil;
+  const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+
+  React.useEffect(() => {
+    if (!isLocked) return;
+    const t = setInterval(() => force(x => x + 1), 500);
+    return () => clearInterval(t);
+  }, [isLocked]);
+
+  const submit = () => {
+    if (isLocked) return;
+    if (pass.trim().toLowerCase() === ACCESS_PASS.toLowerCase()) {
+      try { sessionStorage.setItem("versyo_access", "ok"); } catch (e) {}
+      onUnlock();
+    } else {
+      const n = attempts + 1;
+      setAttempts(n);
+      setError(true);
+      setPass("");
+      if (n >= 3) {
+        setLockedUntil(Date.now() + 30000);
+        setAttempts(0);
+      }
+      setTimeout(() => setError(false), 600);
+    }
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 26px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translateX(-50%)", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.14),transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ marginBottom: 18, animation: error ? "shake 0.4s" : "none" }}>
+        <VLogo size={120} />
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 4 }}>VERSYO</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", marginBottom: 36, textAlign: "center" }}>The Visual Identity Protocol</div>
+
+      <div style={{ width: "100%", maxWidth: 320 }}>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Acceso · Access
+        </div>
+        <input
+          type="password"
+          value={pass}
+          onChange={e => setPass(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && submit()}
+          disabled={isLocked}
+          autoFocus
+          placeholder="••••••••"
+          style={{
+            width: "100%",
+            height: 52,
+            padding: "0 18px",
+            borderRadius: 14,
+            border: error ? "1.5px solid #f5385a" : "1.5px solid rgba(255,255,255,0.14)",
+            background: "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            color: "#fff",
+            fontSize: 16,
+            letterSpacing: "0.2em",
+            textAlign: "center",
+            outline: "none",
+            boxSizing: "border-box",
+            opacity: isLocked ? 0.4 : 1,
+            transition: "border-color 0.2s"
+          }}
+        />
+        {isLocked && (
+          <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+            Bloqueado · Locked — {remaining}s
+          </div>
+        )}
+        {!isLocked && error && (
+          <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+            Contraseña incorrecta · Wrong password
+          </div>
+        )}
+        <button
+          onClick={submit}
+          disabled={isLocked || !pass}
+          style={{
+            width: "100%",
+            height: 52,
+            marginTop: 16,
+            borderRadius: 26,
+            background: GB,
+            border: "none",
+            color: "#fff",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: (isLocked || !pass) ? "not-allowed" : "pointer",
+            opacity: (isLocked || !pass) ? 0.45 : 1,
+            boxShadow: "0 8px 28px rgba(157,92,245,0.28)",
+            letterSpacing: "0.05em"
+          }}
+        >
+          Continuar · Continue
+        </button>
+      </div>
+      <style>{`
+        @keyframes shake {
+          0%,100% { transform: translateX(0); }
+          25% { transform: translateX(-6px); }
+          75% { transform: translateX(6px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -1378,7 +1504,13 @@ function ProfileScreen({ mode, onModeChange, onReset, i, lang, onLang }) {
 function VersyoApp() {
   const [lang, setLang] = useState("es");
   const i = I[lang];
-  const [screen, setScreen] = useState("ob");
+  const [screen, setScreen] = useState(() => {
+    try {
+      return sessionStorage.getItem("versyo_access") === "ok" ? "ob" : "gate";
+    } catch (e) {
+      return "gate";
+    }
+  });
   const [tab, setTab] = useState("finder");
   const [mode, setMode] = useState("pro");
   const [scanResetKey, setScanResetKey] = useState(0);
@@ -1397,6 +1529,7 @@ function VersyoApp() {
     <div className="versyo-outer">
       <div className="versyo-shell">
         <StatusBar />
+        {screen === "gate"        && <AccessGateScreen onUnlock={() => setScreen("ob")} />}
         {screen === "ob"          && <OnboardingScreen onDone={() => setScreen("auth")} i={i} onLang={setLang} />}
         {screen === "auth"        && <AuthGateScreen onLogin={() => setScreen("login")} onRegister={() => setScreen("reg_consent")} i={i} />}
         {screen === "login"       && <LoginScreen onBack={() => setScreen("auth")} onDone={() => { setScreen("app"); setTab("finder"); }} i={i} />}
