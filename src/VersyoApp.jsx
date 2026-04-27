@@ -23,6 +23,14 @@
     input::placeholder{color:rgba(255,255,255,0.35)!important;}
     ::-webkit-scrollbar{width:0;height:0;}
     @keyframes spin{to{transform:rotate(360deg)}}
+    /* Ocultar barra de estado falsa en móvil */
+    @media (max-width:499px){
+      .versyo-statusbar{ display:none !important; }
+      /* Respetar la barra de estado real del iPhone/Android */
+      .versyo-shell{
+        padding-top: env(safe-area-inset-top, 44px);
+      }
+    }
 
     /* ── MÓVIL: pantalla completa fija, sin marco ── */
     .versyo-outer{
@@ -79,6 +87,12 @@ const { useState, useEffect, useRef } = React;
 const BG = "#03030c";
 const GB = "linear-gradient(135deg,#9d5cf5,#f5385a,#ff6b35)";
 
+/* ═══════════════════════════════════════════
+   CONTRASEÑA DE ACCESO AL PROTOTIPO
+   Cámbiala cuando quieras "caducar" el acceso.
+═══════════════════════════════════════════ */
+const ACCESS_PASS = "versyo2026";
+
 const OB_STEPS = [
   { isSplash: true, cta: "Descubrir Versyo →" },
   { title: "En Versyo no buscas personas,", hl: "las encuentras.", body: "Apunta la cámara a quien tienes delante y descubre su identidad digital al instante, siempre bajo su consentimiento.", cta: "Siguiente" },
@@ -86,30 +100,23 @@ const OB_STEPS = [
   { title: "Tú decides qué mostrar", hl: "y a quién.", body: "Activa tu Versyon Profesional, de Ocio, Ad-Hoc o hazte Invisible. Control total sobre tu identidad en cada momento.", cta: "Empezar" },
 ];
 
-const CONVOS = [
+const CONVOS_BASE = [
   { id: 1, n: "Laura Gómez",  ini: "LG", col: "#e03c6e", pre: "Genial conocerte en el evento!", t: "2 min",  u: 2, on: true  },
   { id: 2, n: "Marc Puig",    ini: "MP", col: "#6366f1", pre: "¿Quedamos para el meetup?",      t: "18 min", u: 0, on: true  },
   { id: 3, n: "Alejandro B.", ini: "AB", col: "#1d4ed8", pre: "Hola! Vi tu perfil en Web3...",  t: "1h",     u: 1, on: false },
   { id: 4, n: "Sofía Ruiz",   ini: "SR", col: "#9333ea", pre: "Tu estado Ad-Hoc mola mucho!",   t: "3h",     u: 0, on: false },
 ];
 
-const CHAT_MESSAGES = [
-  { me: false, t: "Hola! Genial encontrarte aquí a través de Versyo.", time: "20:14" },
-  { me: true,  t: "Igualmente! Es increíble esta tecnología.",         time: "20:15" },
-  { me: false, t: "¿Estarás en el DeFi Summit la próxima semana?",    time: "20:16" },
-  { me: true,  t: "Sí! Quedemos el martes a las 10am.",               time: "20:17" },
-  { me: false, t: "Perfecto! Allí estaré 🙌",                          time: "20:18" },
-];
 
 const FAMOUS_DB = [
-  { id: "cr", n: "Cristiano Ronaldo", h: "@cristiano",    col: "#1d4ed8", fw: "635M",  role: "Futbolista · Al Nassr",   nets: ["instagram","tiktok","twitter","facebook"], isFamous: true },
-  { id: "r",  n: "Rosalía",           h: "@rosalia",      col: "#c026d3", fw: "14.2M", role: "Artista · Grammy",         nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "ai", n: "Aitana",            h: "@aitana",       col: "#e879f9", fw: "9.8M",  role: "Cantante · OT",            nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "ib", n: "Ibai Llanos",       h: "@ibai",         col: "#7c3aed", fw: "12.8M", role: "Streamer",                 nets: ["tiktok","twitter","facebook"],              isFamous: true },
-  { id: "bm", n: "Bad Bunny",         h: "@badbunny",     col: "#16a34a", fw: "45.2M", role: "Artista · Reggaeton",      nets: ["instagram","tiktok","twitter"],             isFamous: true },
-  { id: "zd", n: "Zendaya",           h: "@zendaya",      col: "#b45309", fw: "178M",  role: "Actriz · Cantante",        nets: ["instagram","twitter","tiktok"],             isFamous: true },
-  { id: "mr", n: "Marc Roca",         h: "@marcroca",     col: "#6366f1", fw: "1.2M",  role: "Futbolista · Real Betis",  nets: ["instagram","twitter"],                     isFamous: true },
-  { id: "am", n: "Alejandro Sanz",    h: "@alejandrosanz",col: "#0891b2", fw: "8.1M",  role: "Cantante",                 nets: ["instagram","twitter","facebook"],           isFamous: true },
+  { id: "cr", n: "Cristiano Ronaldo", h: "@cristiano",    col: "#1d4ed8", fw: "635M",  role: "Futbolista · Al Nassr",   nets: ["instagram","tiktok","twitter","facebook"], isFamous: true, img: "https://i.ibb.co/Q3Xb6LWs/Ronaldo.jpg" },
+  { id: "r",  n: "Rosalía",           h: "@rosalia",      col: "#c026d3", fw: "14.2M", role: "Artista · Grammy",         nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/XZ24zFDJ/rosalia.jpg" },
+  { id: "ai", n: "Aitana",            h: "@aitana",       col: "#e879f9", fw: "9.8M",  role: "Cantante · OT",            nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/B5FnwdVX/aitana.jpg" },
+  { id: "ib", n: "Ibai Llanos",       h: "@ibai",         col: "#7c3aed", fw: "12.8M", role: "Streamer",                 nets: ["tiktok","twitter","facebook"],              isFamous: true, img: "https://i.ibb.co/mFvMvV9J/ibai.jpg" },
+  { id: "bm", n: "Bad Bunny",         h: "@badbunny",     col: "#16a34a", fw: "45.2M", role: "Artista · Reggaeton",      nets: ["instagram","tiktok","twitter"],             isFamous: true, img: "https://i.ibb.co/yBcfM8fw/bad-bunny.jpg" },
+  { id: "zd", n: "Zendaya",           h: "@zendaya",      col: "#b45309", fw: "178M",  role: "Actriz · Cantante",        nets: ["instagram","twitter","tiktok"],             isFamous: true, img: "https://i.ibb.co/7d54sN8r/zendaya.jpg" },
+  { id: "mr", n: "Marc Roca",         h: "@marcroca",     col: "#6366f1", fw: "1.2M",  role: "Futbolista · Real Betis",  nets: ["instagram","twitter"],                     isFamous: true, img: "https://i.ibb.co/fzhnvSGx/marc-roca.jpg" },
+  { id: "am", n: "Alejandro Sanz",    h: "@alejandrosanz",col: "#0891b2", fw: "8.1M",  role: "Cantante",                 nets: ["instagram","twitter","facebook"],           isFamous: true, img: "https://i.ibb.co/M5699jSG/alejandro-sanz.jpg" },
 ];
 
 const NET_INFO = {
@@ -124,35 +131,174 @@ const NET_INFO = {
 const NETS_PRO  = ["linkedin", "twitter"];
 const NETS_OCIO = ["instagram", "tiktok", "facebook", "tinder"];
 
-const FACE_IMG  = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
+const FACE_IMG  = "https://i.ibb.co/RkpXp8Yp/Imagen-Laura.jpg";
 const CROWD_IMG = "https://i.ibb.co/fGZNc71C/Imagen1.jpg";
+
+const GALLERY_IMGS = [
+  "https://i.ibb.co/xq6YWfMJ/Whats-App-Image-2026-04-14-at-10-15-54.jpg",
+  "https://i.ibb.co/84jWZcr2/Whats-App-Image-2026-04-14-at-10-15-54-1.jpg",
+  "https://i.ibb.co/GB43KpJ/Whats-App-Image-2026-04-14-at-10-15-55.jpg",
+  "https://i.ibb.co/fLPj7xx/Whats-App-Image-2026-04-14-at-10-15-55-1.jpg",
+];
+const RICARDO_DATA = { n: "Ricardo Palacios", role: "CEO · Versyo", img: GALLERY_IMGS[0], fw: "12.3K", nets: ["linkedin", "instagram", "twitter"], isFamous: false };
+
+const I = {
+  es: {
+    discover: "Descubrir Versyo →", next: "Siguiente", start: "Empezar", skip: "Omitir",
+    ob1t: "En Versyo no buscas personas,", ob1h: "las encuentras.",
+    ob1b: "Apunta la cámara a quien tienes delante y descubre su identidad digital al instante, siempre bajo su consentimiento.",
+    ob2t: "Conectamos el mundo real", ob2h: "con el digital.",
+    ob2b: "Tecnología UWB + biometría + realidad aumentada fusiona la experiencia física y digital.",
+    ob3t: "Tú decides qué mostrar", ob3h: "y a quién.",
+    ob3b: "Activa tu Versyon Profesional, de Ocio, Ad-Hoc o hazte Invisible. Control total sobre tu identidad en cada momento.",
+    continueLang: "Continuar en", bio: "Biometría",
+    authSub: "Tu identidad visual, siempre bajo tu control", authUsers: "+12K usuarios",
+    authT1: "En Versyo no buscas personas,", authT2: "las encuentras.",
+    signUp: "Regístrate", logIn: "Identifícate",
+    welcome: "Bienvenido de vuelta", loginSub: "Inicia sesión para continuar",
+    emailL: "Email", passL: "Contraseña", forgot: "¿Olvidaste tu contraseña?",
+    verifying: "Verificando...", enter: "Entrar", back: "Volver",
+    consent1: "Consentimiento", consent2: "Biométrico",
+    consentB: "Al continuar, aceptas que VERSYO procese tus datos biométricos para reconocerte en tiempo real, de acuerdo con el RGPD y el AI Act UE. Puedes retirar tu consentimiento en Ajustes.",
+    accept: "Acepto y continuar",
+    capFace: "Captura tu rostro", capInstr: "Sitúa tu cara dentro del marco. Gira ligeramente la cabeza.",
+    tapScan: "Toca el círculo para comenzar el escaneo", procBio: "Procesando datos biométricos...",
+    scanOk: "✓ Escaneo completado", cont: "Continuar →", scanning: "Escaneando...", startScan: "Empezar escaneo",
+    linkN: "Vincula tus redes", linkNS: "Conecta tus perfiles para que te encuentren",
+    netOn: "✓ Conectada", netOff: "No conectada", netOnB: "Conectado", netOffB: "Conectar",
+    startUse: "Empezar a usar Versyo →", skipNow: "Omitir por ahora",
+    search: "Buscar", searchPh: "Buscar perfiles verificados...", featured: "Perfiles destacados",
+    foll: "seguidores", onlyV: "✓ Solo perfiles verificados Versyo",
+    point: "Enfoca a la persona que quieres reconocer", iding: "Identificando...", found: "Perfil identificado",
+    invAct: "Modo Invisible activo", invMsg: "Cambia a un modo activo para poder realizar búsquedas.",
+    goMy: "Ir a Mi Versyon →", selPhoto: "Selecciona una foto",
+    galInstr: "Elige una imagen de tu galería para identificar a la persona",
+    verified: "VERIFICADO", tapAcc: "Perfiles verificados · Toca para acceder",
+    opening: "Abriendo...", authVer: "Perfiles auténticos verificados por Versyo",
+    connect: "Conectar", reqSent: "Solicitud enviada", pending: "Pendiente de aceptación",
+    whenAcc: function(n){ return "Cuando " + n + " acepte podrás chatear en Versyo"; },
+    cancelReq: "Cancelar solicitud",
+    msgs: "Mensajes", convos: "conversaciones", unread: "sin leer",
+    backB: "← Atrás", online: "En línea", offline: "Desconectado",
+    connToday: "Conectados a través de Versyo · Hoy", writeMsg: "Escribe un mensaje...",
+    myV: "Mi Versyon", actMode: "Mi Versyon — Modo activo",
+    oneP: "Solo", oneM: "un modo activo", oneE: "a la vez.",
+    upgrade: "Pásate a Versyo Gold", yourP: "Tu perfil Versyo", verBio: "Biometría verificada · GDPR",
+    modeL: "Modo", editL: "Editar", editP: "Editar perfil", chPhoto: "Cambiar foto de perfil",
+    nameF: "Nombre", namePh: "Tu nombre", bioF: "Bio", bioPh: "Biometría verificada · GDPR",
+    langF: "Idioma", bioVer: "Biometría verificada", hashV: "Hash vectorial · No se almacena imagen",
+    saved: "✓ Guardado", saveC: "Guardar cambios",
+    mInv: "Invisible", mInvD: "No te ven · No puedes buscar",
+    mPro: "Profesional", mProD: "LinkedIn · Twitter",
+    mOcio: "Ocio", mOcioD: "Instagram · TikTok · Facebook · Tinder",
+    mAdhoc: "Ad-Hoc (Personal)", mAdhocD: "Tu perfil propio Versyo · Sin redes ext.",
+    adhocT: "Perfil ad-hoc para este evento", statusL: "Estado",
+    as1: "De fiesta 🎉", as2: "Networking 💼", as3: "En un festival 🎵", as4: "Conociendo gente 👋",
+    asDef: "De fiesta con amigos 🎉", photoL: "Foto", videoL: "Video (30s)",
+    addedS: "añadido ✓", uploadS: "Subir",
+    proNL: "Redes conectadas a tu perfil profesional", ocioNL: "Redes conectadas a tu perfil de ocio",
+    verId: "Identidad verificada Versyo",
+    launchId: function(l){ return "Versyo está lanzando tu identidad verificada en " + l + "..."; },
+    audMsg: "Tu audiencia te encontrará aquí primero. Sin cuentas falsas. Sin fricción.",
+    profAct: "Perfil verificado y activo en Versyo",
+    openV: function(l){ return "Abrir " + l + " verificado →"; },
+    closeB: "Cerrar",
+    g1: "Reconocimientos ilimitados", g2: "Perfiles eventuales ilimitados",
+    g3: "Gestión de perfiles ilimitados", g4: "Acceso a funciones AR",
+    gCancel: "Cancela cuando quieras · Sin permanencia", gAct: "Activar Versyo Gold →", gNot: "Ahora no",
+    reset: "↺ Reiniciar Demo", navS: "Buscar", navM: "Mensajes", navP: "Perfil",
+    cPre: ["Genial conocerte en el evento!", "¿Quedamos para el meetup?", "Hola! Vi tu perfil en Web3...", "Tu estado Ad-Hoc mola mucho!"],
+    cMsg: ["Hola! Genial encontrarte aquí a través de Versyo.","Igualmente! Es increíble esta tecnología.","¿Estarás en el DeFi Summit la próxima semana?","Sí! Quedemos el martes a las 10am.","Perfecto! Allí estaré 🙌"],
+    roles: { cr:"Futbolista · Al Nassr", r:"Artista · Grammy", ai:"Cantante · OT", ib:"Streamer", bm:"Artista · Reggaeton", zd:"Actriz · Cantante", mr:"Futbolista · Real Betis", am:"Cantante" },
+  },
+  en: {
+    discover: "Discover Versyo →", next: "Next", start: "Get Started", skip: "Skip",
+    ob1t: "In Versyo you don't search for people,", ob1h: "you find them.",
+    ob1b: "Point your camera at the person in front of you and discover their digital identity instantly, always with their consent.",
+    ob2t: "We connect the real world", ob2h: "with the digital.",
+    ob2b: "UWB + biometrics + augmented reality technology merges the physical and digital experience.",
+    ob3t: "You decide what to show", ob3h: "and to whom.",
+    ob3b: "Activate your Professional, Leisure, Ad-Hoc Versyon or go Invisible. Full control over your identity at all times.",
+    continueLang: "Continue in", bio: "Biometrics",
+    authSub: "Your visual identity, always under your control", authUsers: "+12K users",
+    authT1: "In Versyo you don't search for people,", authT2: "you find them.",
+    signUp: "Sign Up", logIn: "Log In",
+    welcome: "Welcome back", loginSub: "Log in to continue",
+    emailL: "Email", passL: "Password", forgot: "Forgot your password?",
+    verifying: "Verifying...", enter: "Log In", back: "Back",
+    consent1: "Biometric", consent2: "Consent",
+    consentB: "By continuing, you agree that VERSYO will process your biometric data to recognize you in real time, in accordance with GDPR and the EU AI Act. You can withdraw your consent in Settings.",
+    accept: "I agree and continue",
+    capFace: "Capture your face", capInstr: "Position your face within the frame. Slightly turn your head.",
+    tapScan: "Tap the circle to start scanning", procBio: "Processing biometric data...",
+    scanOk: "✓ Scan completed", cont: "Continue →", scanning: "Scanning...", startScan: "Start scan",
+    linkN: "Link your networks", linkNS: "Connect your profiles so people can find you",
+    netOn: "✓ Connected", netOff: "Not connected", netOnB: "Connected", netOffB: "Connect",
+    startUse: "Start using Versyo →", skipNow: "Skip for now",
+    search: "Search", searchPh: "Search verified profiles...", featured: "Featured profiles",
+    foll: "followers", onlyV: "✓ Only Versyo verified profiles",
+    point: "Point at the person you want to recognize", iding: "Identifying...", found: "Profile identified",
+    invAct: "Invisible Mode active", invMsg: "Switch to an active mode to perform searches.",
+    goMy: "Go to My Versyon →", selPhoto: "Select a photo",
+    galInstr: "Choose an image from your gallery to identify the person",
+    verified: "VERIFIED", tapAcc: "Verified profiles · Tap to access",
+    opening: "Opening...", authVer: "Authentic profiles verified by Versyo",
+    connect: "Connect", reqSent: "Request sent", pending: "Pending acceptance",
+    whenAcc: function(n){ return "When " + n + " accepts you can chat on Versyo"; },
+    cancelReq: "Cancel request",
+    msgs: "Messages", convos: "conversations", unread: "unread",
+    backB: "← Back", online: "Online", offline: "Offline",
+    connToday: "Connected through Versyo · Today", writeMsg: "Write a message...",
+    myV: "My Versyon", actMode: "My Versyon — Active mode",
+    oneP: "Only", oneM: "one active mode", oneE: "at a time.",
+    upgrade: "Upgrade to Versyo Gold", yourP: "Your Versyo profile", verBio: "Verified biometrics · GDPR",
+    modeL: "Mode", editL: "Edit", editP: "Edit profile", chPhoto: "Change profile photo",
+    nameF: "Name", namePh: "Your name", bioF: "Bio", bioPh: "Verified biometrics · GDPR",
+    langF: "Language", bioVer: "Verified biometrics", hashV: "Vector hash · No image stored",
+    saved: "✓ Saved", saveC: "Save changes",
+    mInv: "Invisible", mInvD: "Not visible · Cannot search",
+    mPro: "Professional", mProD: "LinkedIn · Twitter",
+    mOcio: "Leisure", mOcioD: "Instagram · TikTok · Facebook · Tinder",
+    mAdhoc: "Ad-Hoc (Personal)", mAdhocD: "Your own Versyo profile · No external networks",
+    adhocT: "Ad-hoc profile for this event", statusL: "Status",
+    as1: "Partying 🎉", as2: "Networking 💼", as3: "At a festival 🎵", as4: "Meeting people 👋",
+    asDef: "Partying with friends 🎉", photoL: "Photo", videoL: "Video (30s)",
+    addedS: "added ✓", uploadS: "Upload",
+    proNL: "Networks linked to your professional profile", ocioNL: "Networks linked to your leisure profile",
+    verId: "Versyo verified identity",
+    launchId: function(l){ return "Versyo is launching your verified identity on " + l + "..."; },
+    audMsg: "Your audience will find you here first. No fake accounts. No friction.",
+    profAct: "Profile verified and active on Versyo",
+    openV: function(l){ return "Open " + l + " verified →"; },
+    closeB: "Close",
+    g1: "Unlimited recognitions", g2: "Unlimited event profiles",
+    g3: "Unlimited profile management", g4: "Access to AR features",
+    gCancel: "Cancel anytime · No commitment", gAct: "Activate Versyo Gold →", gNot: "Not now",
+    reset: "↺ Reset Demo", navS: "Search", navM: "Messages", navP: "Profile",
+    cPre: ["Great meeting you at the event!", "Shall we meet at the meetup?", "Hey! I saw your Web3 profile...", "Your Ad-Hoc status is so cool!"],
+    cMsg: ["Hey! Great finding you here through Versyo.","Likewise! This technology is incredible.","Will you be at the DeFi Summit next week?","Yes! Let's meet Tuesday at 10am.","Perfect! I'll be there 🙌"],
+    roles: { cr:"Footballer · Al Nassr", r:"Artist · Grammy", ai:"Singer · OT", ib:"Streamer", bm:"Artist · Reggaeton", zd:"Actress · Singer", mr:"Footballer · Real Betis", am:"Singer" },
+  },
+};
+
 
 /* ═══════════════════════════════════════════
    VERSYO LOGO
 ═══════════════════════════════════════════ */
 function VLogo({ size = 36, onClick }) {
-  const id = `vl${size}${onClick ? "c" : ""}${Math.random().toString(36).slice(2, 6)}`;
   return (
-    <svg width={size} height={size * 1.08} viewBox="0 0 120 130" fill="none"
-      onClick={onClick} style={onClick ? { cursor: "pointer", flexShrink: 0 } : { flexShrink: 0 }}>
-      <defs>
-        <linearGradient id={`${id}a`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="#1a52c7" /><stop offset="30%"  stopColor="#7b2fbe" />
-          <stop offset="60%"  stopColor="#e0305a" /><stop offset="100%" stopColor="#f06a1e" />
-        </linearGradient>
-        <linearGradient id={`${id}b`} x1="100%" y1="0%" x2="10%" y2="100%">
-          <stop offset="0%"   stopColor="#c030c8" /><stop offset="50%"  stopColor="#e8395a" />
-          <stop offset="100%" stopColor="#f06a1e" />
-        </linearGradient>
-        <linearGradient id={`${id}c`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#d03560" /><stop offset="100%" stopColor="#e8392a" />
-        </linearGradient>
-      </defs>
-      <path d="M18 10 C6 10 4 26 12 34 L52 70 L52 50 L28 26 C22 20 22 10 30 10 Z" fill={`url(#${id}b)`} opacity="0.95" />
-      <path d="M102 10 C114 10 116 26 108 34 L68 70 L68 50 L92 26 C98 20 98 10 90 10 Z" fill={`url(#${id}a)`} opacity="0.95" />
-      <rect x="44" y="62" width="32" height="42" rx="16" fill={`url(#${id}c)`} />
-      <ellipse cx="60" cy="70" rx="16" ry="12" fill={`url(#${id}c)`} opacity="0.65" />
-    </svg>
+    <img
+      src="https://i.ibb.co/sdhz278n/Logo-Versyo.png"
+      width={size}
+      height={size}
+      onClick={onClick}
+      style={{
+        objectFit: "contain",
+        flexShrink: 0,
+        cursor: onClick ? "pointer" : "default",
+        display: "block",
+      }}
+    />
   );
 }
 
@@ -238,28 +384,58 @@ function ScanFrame({ phase }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const angRef = useRef(0);
+  const foundAtRef = useRef(null);
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d");
     const W = 310, H = 420;
     c.width = W; c.height = H;
     const sq = 190, fx = (W - sq) / 2, fy = (H - sq) / 2 - 10, cLen = 28;
+    if (phase === "found" && foundAtRef.current === null) {
+      foundAtRef.current = performance.now();
+    }
+    if (phase !== "found") {
+      foundAtRef.current = null;
+    }
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
       if (phase !== "scanning" && phase !== "found") { rafRef.current = requestAnimationFrame(draw); return; }
       angRef.current += 0.8;
       const a = angRef.current, pulse = 0.5 + 0.5 * Math.sin(a * 0.04);
+      // Flash al detectar (primeros 600ms en 'found')
+      let flash = 0;
+      if (phase === "found" && foundAtRef.current) {
+        const elapsed = performance.now() - foundAtRef.current;
+        if (elapsed < 600) {
+          // 0→1 en primeros 200ms, luego 1→0 en 400ms
+          flash = elapsed < 200 ? elapsed / 200 : Math.max(0, 1 - (elapsed - 200) / 400);
+        }
+      }
+      const cornerAlpha = phase === "found"
+        ? (foundAtRef.current && performance.now() - foundAtRef.current > 600 ? 0.35 : 0.7 + flash * 0.3)
+        : (0.7 + pulse * 0.3);
       [[fx, fy, 1, 1], [fx + sq, fy, -1, 1], [fx, fy + sq, 1, -1], [fx + sq, fy + sq, -1, -1]].forEach(([cx, cy, dx, dy]) => {
-        ctx.save(); ctx.strokeStyle = `rgba(0,220,200,${0.7 + pulse * 0.3})`; ctx.lineWidth = 2.5; ctx.lineCap = "round";
-        ctx.shadowColor = "rgba(0,220,200,0.9)"; ctx.shadowBlur = 8;
+        ctx.save();
+        // Color cambia a verde brillante en el flash, luego vuelve al teal
+        const col = flash > 0
+          ? `rgba(${Math.round(0 + flash * 80)},${Math.round(220 + flash * 35)},${Math.round(200 - flash * 100)},${cornerAlpha})`
+          : `rgba(0,220,200,${cornerAlpha})`;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.5 + flash * 1.5;
+        ctx.lineCap = "round";
+        ctx.shadowColor = flash > 0 ? "rgba(80,255,150,1)" : "rgba(0,220,200,0.9)";
+        ctx.shadowBlur = 8 + flash * 18;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dx * cLen, cy); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + dy * cLen); ctx.stroke();
         ctx.restore();
       });
-      ctx.save(); ctx.strokeStyle = `rgba(180,80,255,${0.3 + pulse * 0.2})`; ctx.lineWidth = 1;
-      ctx.beginPath();
-      try { ctx.roundRect(fx, fy, sq, sq, 14); } catch (e) { ctx.rect(fx, fy, sq, sq); }
-      ctx.stroke(); ctx.restore();
+      // Marco interior solo en scanning o en flash
+      if (phase === "scanning" || flash > 0) {
+        ctx.save(); ctx.strokeStyle = `rgba(180,80,255,${(0.3 + pulse * 0.2) * (phase === "found" ? flash : 1)})`; ctx.lineWidth = 1;
+        ctx.beginPath();
+        try { ctx.roundRect(fx, fy, sq, sq, 14); } catch (e) { ctx.rect(fx, fy, sq, sq); }
+        ctx.stroke(); ctx.restore();
+      }
       if (phase === "scanning") {
         const t = ((a * 0.012) % 1), scanY = fy + t * sq;
         if (scanY >= fy && scanY <= fy + sq) {
@@ -281,14 +457,15 @@ function ScanFrame({ phase }) {
 /* ═══════════════════════════════════════════
    PROFILE CARD — famosos (RRSS) vs usuarios (Conectar)
 ═══════════════════════════════════════════ */
-function ProfileCard({ person, onClose }) {
+function ProfileCard({ person, onClose, i }) {
   const [connState, setConnState] = useState("idle");
   const [visible, setVisible] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setVisible(true), 40); return () => clearTimeout(t); }, []);
+  const [tappedNets, setTappedNets] = useState({});
+  useEffect(() => { const t = setTimeout(() => setVisible(true), 180); return () => clearTimeout(t); }, []);
 
   return (
-    <div style={{ position: "absolute", bottom: 90, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 14}px) scale(${visible ? 1 : 0.96})`, opacity: visible ? 1 : 0, transition: "all 0.5s cubic-bezier(.34,1.4,.64,1)", width: 292, zIndex: 22 }}>
-      <div style={{ background: "rgba(8,6,28,0.92)", border: "1px solid rgba(180,80,255,0.5)", borderRadius: 22, padding: "15px 16px 17px", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 0 40px rgba(180,80,255,0.22)", position: "relative", overflow: "visible" }}>
+    <div style={{ position: "absolute", bottom: 58, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 32}px) scale(${visible ? 1 : 0.86})`, opacity: visible ? 1 : 0, transition: "all 0.55s cubic-bezier(.22,1.4,.36,1)", width: 292, zIndex: 22 }}>
+      <div style={{ background: "rgba(8,6,28,0.92)", border: "1px solid rgba(180,80,255,0.5)", borderRadius: 22, padding: "15px 16px 17px", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: visible ? "0 0 40px rgba(180,80,255,0.22)" : "0 0 60px rgba(180,80,255,0.6)", transition: "box-shadow 0.7s ease", position: "relative", overflow: "visible" }}>
         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1.5, background: "linear-gradient(90deg,transparent,rgba(180,80,255,0.9),rgba(240,100,160,0.7),transparent)", borderRadius: "0 0 2px 2px" }} />
         {/* Cabecera */}
         <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 11 }}>
@@ -304,10 +481,17 @@ function ProfileCard({ person, onClose }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
               <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{person.n}</span>
-              {person.isFamous && <div style={{ background: "rgba(245,197,24,0.15)", border: "1px solid rgba(245,197,24,0.4)", borderRadius: 10, padding: "2px 7px" }}><span style={{ fontSize: 9, fontWeight: 700, color: "#f5c518" }}>VERIFICADO</span></div>}
+              {person.isFamous && <div style={{ background: "rgba(245,197,24,0.15)", border: "1px solid rgba(245,197,24,0.4)", borderRadius: 10, padding: "2px 7px" }}><span style={{ fontSize: 9, fontWeight: 700, color: "#f5c518" }}>{i.verified}</span></div>}
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{person.role || ""}</div>
-            {person.fw && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{person.fw} seguidores</div>}
+            {person.fw && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
+              {person.nets && person.nets.includes("linkedin") && (
+                <div style={{ width: 16, height: 16, borderRadius: 4, background: "#0a66c2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z" /></svg>
+                </div>
+              )}
+              <span>{person.fw} {i.foll}</span>
+            </div>}
           </div>
           <CloseBtn onClick={onClose} />
         </div>
@@ -315,24 +499,24 @@ function ProfileCard({ person, onClose }) {
         {/* Famoso: logos RRSS */}
         {person.isFamous && (
           <div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 9 }}>Perfiles verificados · Toca para acceder</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 9 }}>{i.tapAcc}</div>
             <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
               {(person.nets || []).map(key => {
                 const n = NET_INFO[key];
-                const [tapped, setTapped] = useState(false);
+                const tapped = !!tappedNets[key];
                 return (
-                  <div key={key} onClick={() => setTapped(t => !t)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
+                  <div key={key} onClick={() => setTappedNets(s => ({ ...s, [key]: !s[key] }))} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
                     <div style={{ width: 46, height: 46, borderRadius: 13, background: n.bg, display: "flex", alignItems: "center", justifyContent: "center", border: tapped ? "2px solid rgba(52,211,153,0.7)" : "1px solid rgba(255,255,255,0.12)", boxShadow: tapped ? "0 0 12px rgba(52,211,153,0.3)" : "none", transition: "all 0.2s" }}>
                       <NetSVG net={key} size={23} />
                     </div>
-                    <span style={{ fontSize: 8, color: tapped ? "#34d399" : "rgba(255,255,255,0.45)", transition: "color 0.2s" }}>{tapped ? "Abriendo..." : n.label}</span>
+                    <span style={{ fontSize: 8, color: tapped ? "#34d399" : "rgba(255,255,255,0.45)", transition: "color 0.2s" }}>{tapped ? i.opening : n.label}</span>
                   </div>
                 );
               })}
             </div>
             <div style={{ marginTop: 11, display: "flex", alignItems: "center", gap: 6, background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.18)", borderRadius: 10, padding: "7px 10px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", flexShrink: 0 }} />
-              <span style={{ fontSize: 10, color: "rgba(52,211,153,0.85)" }}>Perfiles auténticos verificados por Versyo</span>
+              <span style={{ fontSize: 10, color: "rgba(52,211,153,0.85)" }}>{i.authVer}</span>
             </div>
           </div>
         )}
@@ -340,7 +524,7 @@ function ProfileCard({ person, onClose }) {
         {!person.isFamous && (
           <div>
             {connState === "idle" && (
-              <button onClick={() => setConnState("sent")} style={{ width: "100%", height: 44, borderRadius: 22, background: "linear-gradient(135deg,#d63af9,#f5385a,#ff6b35)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(214,58,249,0.4)" }}>Conectar</button>
+              <button onClick={() => setConnState("sent")} style={{ width: "100%", height: 44, borderRadius: 22, background: "linear-gradient(135deg,#d63af9,#f5385a,#ff6b35)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(214,58,249,0.4)" }}>{i.connect}</button>
             )}
             {connState === "sent" && (
               <div style={{ background: "rgba(157,92,245,0.1)", border: "1px solid rgba(157,92,245,0.35)", borderRadius: 14, padding: "13px 14px" }}>
@@ -349,14 +533,14 @@ function ProfileCard({ person, onClose }) {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Solicitud enviada</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 1 }}>Pendiente de aceptación</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{i.reqSent}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 1 }}>{i.pending}</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, paddingLeft: 39 }}>
-                  Cuando {person.n.split(" ")[0]} acepte podrás chatear en Versyo
+                  {i.whenAcc(person.n.split(" ")[0])}
                 </div>
-                <button onClick={() => setConnState("idle")} style={{ marginTop: 8, paddingLeft: 39, background: "none", border: "none", fontSize: 10, color: "rgba(255,255,255,0.28)", cursor: "pointer", textDecoration: "underline", display: "block" }}>Cancelar solicitud</button>
+                <button onClick={() => setConnState("idle")} style={{ marginTop: 8, paddingLeft: 39, background: "none", border: "none", fontSize: 10, color: "rgba(255,255,255,0.28)", cursor: "pointer", textDecoration: "underline", display: "block" }}>{i.cancelReq}</button>
               </div>
             )}
           </div>
@@ -372,7 +556,7 @@ function ProfileCard({ person, onClose }) {
 ═══════════════════════════════════════════ */
 function StatusBar() {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 22px 0", flexShrink: 0, zIndex: 10 }}>
+    <div className="versyo-statusbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 22px 0", flexShrink: 0, zIndex: 10 }}>
       <span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>9:41</span>
       <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
         <svg width="16" height="11" viewBox="0 0 16 11">{[0, 4.5, 9, 13.5].map((x, i) => <rect key={i} x={x} y={11 - (i + 1) * 2.7} width={3} height={(i + 1) * 2.7} rx={1} fill="rgba(255,255,255,.85)" />)}</svg>
@@ -388,11 +572,11 @@ function StatusBar() {
 /* ═══════════════════════════════════════════
    NAV BAR
 ═══════════════════════════════════════════ */
-function NavBar({ tab, onTab, unread }) {
+function NavBar({ tab, onTab, unread, i }) {
   const tabs = [
-    { id: "finder",  label: "Buscar",   icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg> },
-    { id: "chat",    label: "Mensajes", badge: unread, icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> },
-    { id: "profile", label: "Perfil",   icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg> },
+    { id: "finder",  label: i.navS,   icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg> },
+    { id: "chat",    label: i.navM, badge: unread, icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> },
+    { id: "profile", label: i.navP,   icon: (a) => <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "rgba(255,255,255,0.3)"} strokeWidth={a ? 2.3 : 1.5}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg> },
   ];
   return (
     <div style={{ flexShrink: 0, display: "flex", background: "rgba(3,3,12,0.98)", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "10px 0 18px" }}>
@@ -420,7 +604,126 @@ function PageHeader({ title, onReset }) {
   return (
     <div style={{ padding: "6px 18px 10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <div style={{ fontSize: 19, fontWeight: 700, color: "#fff", letterSpacing: "-0.015em" }}>{title}</div>
-      <VLogo size={26} onClick={onReset} />
+      <VLogo size={40} onClick={onReset} />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   ACCESS GATE — pantalla de contraseña al iniciar
+═══════════════════════════════════════════ */
+function AccessGateScreen({ onUnlock }) {
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(0);
+  const [, force] = useState(0);
+
+  const isLocked = Date.now() < lockedUntil;
+  const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+
+  React.useEffect(() => {
+    if (!isLocked) return;
+    const t = setInterval(() => force(x => x + 1), 500);
+    return () => clearInterval(t);
+  }, [isLocked]);
+
+  const submit = () => {
+    if (isLocked) return;
+    if (pass.trim().toLowerCase() === ACCESS_PASS.toLowerCase()) {
+      try { sessionStorage.setItem("versyo_access", "ok"); } catch (e) {}
+      onUnlock();
+    } else {
+      const n = attempts + 1;
+      setAttempts(n);
+      setError(true);
+      setPass("");
+      if (n >= 3) {
+        setLockedUntil(Date.now() + 30000);
+        setAttempts(0);
+      }
+      setTimeout(() => setError(false), 600);
+    }
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "32px 26px 36px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translateX(-50%)", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.14),transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10, animation: error ? "shake 0.4s" : "none" }}><VLogo size={384} /></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 180, width: "100%" }}>
+        <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 4 }}>VERSYO</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: 36, textAlign: "center" }}>The Visual Identity Protocol</div>
+
+        <div style={{ width: "100%", maxWidth: 320 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+            Acceso · Access
+          </div>
+          <input
+            type="password"
+            value={pass}
+            onChange={e => setPass(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()}
+            disabled={isLocked}
+            autoFocus
+            placeholder="••••••••"
+            style={{
+              width: "100%",
+              height: 52,
+              padding: "0 18px",
+              borderRadius: 14,
+              border: error ? "1.5px solid #f5385a" : "1.5px solid rgba(255,255,255,0.14)",
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              color: "#fff",
+              fontSize: 16,
+              letterSpacing: "0.2em",
+              textAlign: "center",
+              outline: "none",
+              boxSizing: "border-box",
+              opacity: isLocked ? 0.4 : 1,
+              transition: "border-color 0.2s"
+            }}
+          />
+          {isLocked && (
+            <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+              Bloqueado · Locked — {remaining}s
+            </div>
+          )}
+          {!isLocked && error && (
+            <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+              Contraseña incorrecta · Wrong password
+            </div>
+          )}
+        </div>
+      </div>
+      <button
+        onClick={submit}
+        disabled={isLocked || !pass}
+        style={{
+          width: "100%",
+          height: 54,
+          borderRadius: 27,
+          background: GB,
+          border: "none",
+          color: "#fff",
+          fontSize: 16,
+          fontWeight: 700,
+          cursor: (isLocked || !pass) ? "not-allowed" : "pointer",
+          opacity: (isLocked || !pass) ? 0.45 : 1,
+          boxShadow: "0 8px 28px rgba(157,92,245,0.28)",
+          letterSpacing: "0.02em"
+        }}
+      >
+        Continuar · Continue
+      </button>
+      <style>{`
+        @keyframes shake {
+          0%,100% { transform: translateX(-50%); }
+          25% { transform: translateX(calc(-50% - 6px)); }
+          75% { transform: translateX(calc(-50% + 6px)); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -428,27 +731,40 @@ function PageHeader({ title, onReset }) {
 /* ═══════════════════════════════════════════
    ONBOARDING — paso 0 es splash fijo con botón
 ═══════════════════════════════════════════ */
-function OnboardingScreen({ onDone }) {
+function OnboardingScreen({ onDone, i, onLang }) {
+  const OBS = [
+    { isSplash: true, cta: i.discover },
+    { title: i.ob1t, hl: i.ob1h, body: i.ob1b, cta: i.next },
+    { title: i.ob2t, hl: i.ob2h, body: i.ob2b, cta: i.next },
+    { title: i.ob3t, hl: i.ob3h, body: i.ob3b, cta: i.start },
+  ];
   const [step, setStep] = useState(0);
-  const s = OB_STEPS[step];
-  const next = () => step < OB_STEPS.length - 1 ? setStep(x => x + 1) : onDone();
+  const s = OBS[step];
+  const next = () => step < OBS.length - 1 ? setStep(x => x + 1) : onDone();
 
   if (s.isSplash) return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "32px 26px 36px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translateX(-50%)", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.13),transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ marginBottom: 22 }}><VLogo size={96} /></div>
-        <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 8 }}>VERSYO</div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 180 }}>
+        <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10 }}><VLogo size={384} /></div>
+        <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 4 }}>VERSYO</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: 32 }}>The Visual Identity Protocol</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
-          {["UWB", "Biometría", "AR", "GDPR"].map(tag => (
+          {["UWB", i.bio, "AR", "GDPR"].map(tag => (
             <div key={tag} style={{ background: "rgba(157,92,245,0.12)", border: "1px solid rgba(157,92,245,0.3)", borderRadius: 20, padding: "5px 14px", fontSize: 11, color: "rgba(157,92,245,0.9)", fontWeight: 500 }}>{tag}</div>
           ))}
+        </div>
+        <div style={{ marginTop: 28 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", textAlign: "center", marginBottom: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>{i.continueLang}</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+            <button onClick={() => onLang("es")} style={{ padding: "8px 20px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", border: "1.5px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff" }}>Español</button>
+            <button onClick={() => onLang("en")} style={{ padding: "8px 20px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer", border: "1.5px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff" }}>English</button>
+          </div>
         </div>
       </div>
       <div style={{ width: "100%" }}>
         <div style={{ display: "flex", justifyContent: "center", gap: 7, marginBottom: 20 }}>
-          {OB_STEPS.map((_, i) => <div key={i} style={{ height: 4, borderRadius: 2, width: i === step ? 24 : 7, background: i === step ? GB : "rgba(255,255,255,0.18)", transition: "width 0.3s" }} />)}
+          {OBS.map((_, i) => <div key={i} style={{ height: 4, borderRadius: 2, width: i === step ? 24 : 7, background: i === step ? GB : "rgba(255,255,255,0.18)", transition: "width 0.3s" }} />)}
         </div>
         <button onClick={next} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)" }}>{s.cta}</button>
       </div>
@@ -459,10 +775,10 @@ function OnboardingScreen({ onDone }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 26px 32px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "14%", left: "50%", transform: "translateX(-50%)", width: 290, height: 290, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.09),transparent 70%)", pointerEvents: "none" }} />
       <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 6, marginBottom: 4 }}>
-        {step < OB_STEPS.length - 1 ? <button onClick={onDone} style={{ padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 12, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>Omitir</button> : <div style={{ height: 32 }} />}
+        {step < OBS.length - 1 ? <button onClick={onDone} style={{ padding: "6px 14px", borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 12, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>{i.skip}</button> : <div style={{ height: 32 }} />}
       </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ marginBottom: 26 }}><VLogo size={52} /></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: 320 }}>
+        <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10 }}><VLogo size={384} /></div>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 27, fontWeight: 700, lineHeight: 1.22, letterSpacing: "-0.02em", color: "#fff" }}>{s.title}</div>
           <div style={{ fontSize: 27, fontWeight: 700, lineHeight: 1.22, letterSpacing: "-0.02em", background: GB, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{s.hl}</div>
@@ -470,7 +786,7 @@ function OnboardingScreen({ onDone }) {
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", textAlign: "center", lineHeight: 1.68, maxWidth: 268 }}>{s.body}</p>
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 7, marginBottom: 24 }}>
-        {OB_STEPS.map((_, i) => <div key={i} style={{ height: 4, borderRadius: 2, width: i === step ? 24 : 7, background: i === step ? GB : "rgba(255,255,255,0.18)", transition: "width 0.3s" }} />)}
+        {OBS.map((_, i) => <div key={i} style={{ height: 4, borderRadius: 2, width: i === step ? 24 : 7, background: i === step ? GB : "rgba(255,255,255,0.18)", transition: "width 0.3s" }} />)}
       </div>
       <button onClick={next} style={{ width: "100%", height: 52, borderRadius: 26, background: GB, border: "none", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)" }}>{s.cta}</button>
     </div>
@@ -480,30 +796,32 @@ function OnboardingScreen({ onDone }) {
 /* ═══════════════════════════════════════════
    AUTH GATE
 ═══════════════════════════════════════════ */
-function AuthGateScreen({ onLogin, onRegister }) {
+function AuthGateScreen({ onLogin, onRegister, i }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const t = setTimeout(() => setVisible(true), 60); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 26px 36px", position: "relative", overflow: "hidden" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "0 26px 36px", position: "relative", overflowY: "auto" }}>
       <div style={{ position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.12),transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(18px)", transition: "all 0.6s cubic-bezier(.34,1.4,.64,1)" }}>
-        <div style={{ marginBottom: 14 }}><VLogo size={60} /></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(18px)", transition: "all 0.6s cubic-bezier(.34,1.4,.64,1)", paddingTop: 260 }}>
+        <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10 }}><VLogo size={384} /></div>
         <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 3, color: "#fff", marginBottom: 6 }}>VERSYO</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em", marginBottom: 40, textAlign: "center" }}>Tu identidad visual, siempre bajo tu control</div>
-        <div style={{ display: "flex", marginBottom: 32, position: "relative" }}>
-          {["#e03c6e", "#6366f1", "#1d4ed8", "#f06a1e", "#34d399"].map((col, i) => (
-            <div key={i} style={{ width: 40, height: 40, borderRadius: "50%", background: col, border: "2.5px solid #03030c", marginLeft: i > 0 ? -10 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{["L", "M", "A", "S", "R"][i]}</div>
-          ))}
-          <div style={{ position: "absolute", right: -52, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>+12K usuarios</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em", marginBottom: 40, textAlign: "center" }}>{i.authSub}</div>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 32, gap: 12 }}>
+          <div style={{ display: "flex" }}>
+            {["#e03c6e", "#6366f1", "#1d4ed8", "#f06a1e"].map((col, i) => (
+              <div key={i} style={{ width: 40, height: 40, borderRadius: "50%", background: col, border: "2.5px solid #03030c", marginLeft: i > 0 ? -10 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{["L", "M", "A", "S"][i]}</div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>{i.authUsers}</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <span style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>En Versyo no buscas personas,</span><br />
-          <span style={{ fontSize: 20, fontWeight: 700, background: GB, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>las encuentras.</span>
+          <span style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>{i.authT1}</span><br />
+          <span style={{ fontSize: 20, fontWeight: 700, background: GB, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{i.authT2}</span>
         </div>
       </div>
       <div style={{ width: "100%", opacity: visible ? 1 : 0, transition: "all 0.6s ease 0.18s", display: "flex", flexDirection: "column", gap: 12 }}>
-        <button onClick={onRegister} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: "0.02em", boxShadow: "0 8px 28px rgba(157,92,245,0.32)" }}>Regístrate</button>
-        <button onClick={onLogin} style={{ width: "100%", height: 54, borderRadius: 27, background: "transparent", border: "1.5px solid rgba(255,255,255,0.22)", color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>Identifícate</button>
+        <button onClick={onRegister} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: "0.02em", boxShadow: "0 8px 28px rgba(157,92,245,0.32)" }}>{i.signUp}</button>
+        <button onClick={onLogin} style={{ width: "100%", height: 54, borderRadius: 27, background: "transparent", border: "1.5px solid rgba(255,255,255,0.22)", color: "#fff", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>{i.logIn}</button>
       </div>
     </div>
   );
@@ -512,22 +830,22 @@ function AuthGateScreen({ onLogin, onRegister }) {
 /* ═══════════════════════════════════════════
    LOGIN
 ═══════════════════════════════════════════ */
-function LoginScreen({ onBack, onDone }) {
+function LoginScreen({ onBack, onDone, i }) {
   const [loading, setLoading] = useState(false);
   const handleLogin = () => { setLoading(true); setTimeout(() => { setLoading(false); onDone(); }, 1600); };
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflow: "hidden", position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto", position: "relative" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 32 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
-        <VLogo size={28} />
+        <VLogo size={40} />
       </div>
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 6 }}>Bienvenido de vuelta</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.48)" }}>Inicia sesión para continuar</div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 6 }}>{i.welcome}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.48)" }}>{i.loginSub}</div>
       </div>
-      {[{ label: "Email", ph: "tu@email.com", type: "text" }, { label: "Contraseña", ph: "••••••••", type: "password" }].map(f => (
+      {[{ label: i.emailL, ph: "tu@email.com", type: "text" }, { label: i.passL, ph: "••••••••", type: "password" }].map(f => (
         <div key={f.label} style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 7 }}>{f.label}</div>
           <div style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: "13px 15px" }}>
@@ -535,9 +853,9 @@ function LoginScreen({ onBack, onDone }) {
           </div>
         </div>
       ))}
-      <div style={{ textAlign: "right", marginBottom: 28 }}><span style={{ fontSize: 12, color: "#9d5cf5", cursor: "pointer" }}>¿Olvidaste tu contraseña?</span></div>
+      <div style={{ textAlign: "right", marginBottom: 28 }}><span style={{ fontSize: 12, color: "#9d5cf5", cursor: "pointer" }}>{i.forgot}</span></div>
       <button onClick={handleLogin} style={{ width: "100%", height: 54, borderRadius: 27, background: loading ? "rgba(255,255,255,0.08)" : GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.3s" }}>
-        {loading ? <><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,0.2)", borderTopColor: "#fff", animation: "spin 0.7s linear infinite" }} />Verificando...</> : "Entrar"}
+        {loading ? <><div style={{ width: 18, height: 18, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,0.2)", borderTopColor: "#fff", animation: "spin 0.7s linear infinite" }} />{i.verifying}</> : i.enter}
       </button>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -547,39 +865,33 @@ function LoginScreen({ onBack, onDone }) {
 /* ═══════════════════════════════════════════
    REGISTRO PASO 1 — Consentimiento
 ═══════════════════════════════════════════ */
-function RegisterConsentScreen({ onBack, onAccept }) {
+function RegisterConsentScreen({ onBack, onAccept, i }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const t = setTimeout(() => setVisible(true), 60); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflow: "hidden", position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto", position: "relative" }}>
       <div style={{ position: "absolute", top: "25%", left: "50%", transform: "translateX(-50%)", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.1),transparent 70%)", pointerEvents: "none" }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 24 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
-        <VLogo size={28} />
+        <VLogo size={40} />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 28 }}>
         {[0, 1, 2].map(i => <div key={i} style={{ height: 3.5, borderRadius: 2, width: i === 0 ? 28 : 10, background: i === 0 ? GB : "rgba(255,255,255,0.15)" }} />)}
       </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)", transition: "all 0.55s cubic-bezier(.34,1.4,.64,1)" }}>
-        <div style={{ marginBottom: 20 }}><VLogo size={58} /></div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)", transition: "all 0.55s cubic-bezier(.34,1.4,.64,1)", paddingTop: 320 }}>
+        <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10 }}><VLogo size={384} /></div>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Consentimiento</div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Biométrico</div>
+          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{i.consent1}</div>
+          <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.2 }}>{i.consent2}</div>
         </div>
         <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "18px 16px", marginBottom: 20, width: "100%", boxSizing: "border-box" }}>
-          <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.72, margin: 0, textAlign: "center" }}>Al continuar, aceptas que VERSYO procese tus datos biométricos para reconocerte en tiempo real, de acuerdo con el RGPD y el AI Act UE. Puedes retirar tu consentimiento en Ajustes.</p>
+          <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.72, margin: 0, textAlign: "center" }}>{i.consentB}</p>
         </div>
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 9 }}>
-          {[["🔒", "Datos cifrados end-to-end"], ["🧬", "Solo hashes vectoriales, nunca imágenes"], ["🇪🇺", "Cumplimiento GDPR + AI Act UE"]].map(([icon, text]) => (
-            <div key={text} style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(157,92,245,0.07)", border: "1px solid rgba(157,92,245,0.15)", borderRadius: 12, padding: "9px 12px" }}>
-              <span style={{ fontSize: 15 }}>{icon}</span><span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{text}</span>
-            </div>
-          ))}
-        </div>
+
       </div>
-      <button onClick={onAccept} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)", marginTop: 16 }}>Acepto y continuar</button>
+      <button onClick={onAccept} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)", marginTop: 16 }}>{i.accept}</button>
     </div>
   );
 }
@@ -587,23 +899,23 @@ function RegisterConsentScreen({ onBack, onAccept }) {
 /* ═══════════════════════════════════════════
    REGISTRO PASO 2 — Captura facial
 ═══════════════════════════════════════════ */
-function RegisterFaceScreen({ onBack, onDone }) {
+function RegisterFaceScreen({ onBack, onDone, i }) {
   const [scanState, setScanState] = useState("idle");
   const handleScan = () => { if (scanState !== "idle") return; setScanState("scanning"); setTimeout(() => setScanState("done"), 3200); };
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflow: "hidden", position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto", position: "relative" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 18 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
-        <VLogo size={28} />
+        <VLogo size={40} />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
         {[0, 1, 2].map(i => <div key={i} style={{ height: 3.5, borderRadius: 2, width: i === 1 ? 28 : 10, background: i <= 1 ? GB : "rgba(255,255,255,0.15)" }} />)}
       </div>
       <div style={{ textAlign: "center", marginBottom: 6 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Captura tu rostro</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 5, lineHeight: 1.6 }}>Sitúa tu cara dentro del marco. Gira ligeramente la cabeza.</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>{i.capFace}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 5, lineHeight: 1.6 }}>{i.capInstr}</div>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <div onClick={handleScan} style={{ position: "relative", width: 220, height: 220, cursor: scanState === "idle" ? "pointer" : "default" }}>
@@ -625,12 +937,12 @@ function RegisterFaceScreen({ onBack, onDone }) {
           </div>
           <div style={{ position: "absolute", inset: -10 }}><FaceScanCanvas scanning={scanState === "scanning"} /></div>
         </div>
-        {scanState === "idle" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>Toca el círculo para comenzar el escaneo</span></div>}
-        {scanState === "scanning" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "rgba(0,220,200,0.8)" }}>Procesando datos biométricos...</span></div>}
-        {scanState === "done" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "#34d399" }}>✓ Escaneo completado</span></div>}
+        {scanState === "idle" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>{i.tapScan}</span></div>}
+        {scanState === "scanning" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "rgba(0,220,200,0.8)" }}>{i.procBio}</span></div>}
+        {scanState === "done" && <div style={{ marginTop: 14, textAlign: "center" }}><span style={{ fontSize: 12, color: "#34d399" }}>{i.scanOk}</span></div>}
       </div>
       <button onClick={scanState === "done" ? onDone : handleScan} style={{ width: "100%", height: 54, borderRadius: 27, background: scanState === "scanning" ? "rgba(255,255,255,0.07)" : GB, border: scanState === "scanning" ? "1px solid rgba(255,255,255,0.12)" : "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", transition: "all 0.3s" }}>
-        {scanState === "done" ? "Continuar →" : scanState === "scanning" ? "Escaneando..." : "Empezar escaneo"}
+        {scanState === "done" ? i.cont : scanState === "scanning" ? i.scanning : i.startScan}
       </button>
     </div>
   );
@@ -639,7 +951,7 @@ function RegisterFaceScreen({ onBack, onDone }) {
 /* ═══════════════════════════════════════════
    REGISTRO PASO 3 — Vincula redes
 ═══════════════════════════════════════════ */
-function RegisterNetworksScreen({ onBack, onDone }) {
+function RegisterNetworksScreen({ onBack, onDone, i }) {
   const INIT = [
     { id: "tiktok", label: "TikTok", connected: false },
     { id: "linkedin", label: "LinkedIn", connected: true },
@@ -650,19 +962,19 @@ function RegisterNetworksScreen({ onBack, onDone }) {
   const toggle = (id) => setNets(prev => prev.map(n => n.id === id ? { ...n, connected: !n.connected } : n));
   const NET_COLORS = { tiktok: "#010101", linkedin: "#0a66c2", instagram: "linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)", tinder: "linear-gradient(135deg,#ff6b6b,#fd297b)" };
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflow: "hidden" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 18 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
-        <VLogo size={28} />
+        <VLogo size={40} />
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
         {[0, 1, 2].map(i => <div key={i} style={{ height: 3.5, borderRadius: 2, width: i === 2 ? 28 : 10, background: GB }} />)}
       </div>
       <div style={{ textAlign: "center", marginBottom: 22 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 6 }}>Vincula tus redes</div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.48)", lineHeight: 1.6 }}>Conecta tus perfiles para que te encuentren</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 6 }}>{i.linkN}</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.48)", lineHeight: 1.6 }}>{i.linkNS}</div>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10, overflow: "auto" }}>
         {nets.map(net => (
@@ -672,17 +984,17 @@ function RegisterNetworksScreen({ onBack, onDone }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", marginBottom: 2 }}>{net.label}</div>
-              <div style={{ fontSize: 11, color: net.connected ? "rgba(52,211,153,0.9)" : "rgba(255,255,255,0.38)" }}>{net.connected ? "✓ Conectada" : "No conectada"}</div>
+              <div style={{ fontSize: 11, color: net.connected ? "rgba(52,211,153,0.9)" : "rgba(255,255,255,0.38)" }}>{net.connected ? i.netOn : i.netOff}</div>
             </div>
             <button onClick={() => toggle(net.id)} style={{ padding: "7px 16px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, background: net.connected ? "rgba(52,211,153,0.14)" : GB, color: net.connected ? "#34d399" : "#fff", flexShrink: 0, transition: "all 0.2s" }}>
-              {net.connected ? "Conectado" : "Conectar"}
+              {net.connected ? i.netOnB : i.netOffB}
             </button>
           </div>
         ))}
       </div>
       <div style={{ marginTop: 16 }}>
-        <button onClick={onDone} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)" }}>Empezar a usar Versyo →</button>
-        <button onClick={onDone} style={{ width: "100%", marginTop: 10, padding: "10px 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer" }}>Omitir por ahora</button>
+        <button onClick={onDone} style={{ width: "100%", height: 54, borderRadius: 27, background: GB, border: "none", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 28px rgba(157,92,245,0.28)" }}>{i.startUse}</button>
+        <button onClick={onDone} style={{ width: "100%", marginTop: 10, padding: "10px 0", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer" }}>{i.skipNow}</button>
       </div>
     </div>
   );
@@ -691,7 +1003,7 @@ function RegisterNetworksScreen({ onBack, onDone }) {
 /* ═══════════════════════════════════════════
    EDIT PROFILE MODAL
 ═══════════════════════════════════════════ */
-function EditProfileModal({ onClose }) {
+function EditProfileModal({ onClose, i, lang, onLang }) {
   const [saved, setSaved] = useState(false);
   const save = () => { setSaved(true); setTimeout(() => { setSaved(false); onClose(); }, 1200); };
   return (
@@ -699,7 +1011,7 @@ function EditProfileModal({ onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", background: "rgba(7,7,22,0.99)", borderRadius: "24px 24px 0 0", borderTop: "1px solid rgba(255,255,255,0.2)", padding: "22px 18px 32px", maxHeight: "85%", overflowY: "auto" }}>
         <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>Editar perfil</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>{i.editP}</div>
           <CloseBtn onClick={onClose} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 24 }}>
@@ -709,9 +1021,9 @@ function EditProfileModal({ onClose }) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
             </div>
           </div>
-          <div style={{ marginTop: 12, fontSize: 12, color: "rgba(157,92,245,0.8)", cursor: "pointer" }}>Cambiar foto de perfil</div>
+          <div style={{ marginTop: 12, fontSize: 12, color: "rgba(157,92,245,0.8)", cursor: "pointer" }}>{i.chPhoto}</div>
         </div>
-        {[["Nombre", "Tu nombre"], ["Bio", "Biometría verificada · GDPR"]].map(([label, ph]) => (
+        {[[i.nameF, i.namePh], [i.bioF, i.bioPh]].map(([label, ph]) => (
           <div key={label} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 7 }}>{label}</div>
             <div style={{ background: "rgba(255,255,255,0.05)", border: "1.5px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: "13px 15px" }}>
@@ -719,17 +1031,23 @@ function EditProfileModal({ onClose }) {
             </div>
           </div>
         ))}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 7 }}>{i.langF}</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[["es","Español"],["en","English"]].map(([c,l])=>(<button key={c} onClick={()=>onLang(c)} style={{flex:1,padding:"12px 0",borderRadius:14,fontSize:13,fontWeight:600,cursor:"pointer",border:lang===c?"1.5px solid #9d5cf5":"1.5px solid rgba(255,255,255,0.12)",background:lang===c?"rgba(157,92,245,0.15)":"rgba(255,255,255,0.05)",color:lang===c?"#fff":"rgba(255,255,255,0.5)"}}>{l}</button>))}
+          </div>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 14, padding: "12px 14px", marginBottom: 20 }}>
           <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(52,211,153,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#34d399" }}>Biometría verificada</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)" }}>Hash vectorial · No se almacena imagen</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#34d399" }}>{i.bioVer}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)" }}>{i.hashV}</div>
           </div>
         </div>
         <button onClick={save} style={{ width: "100%", height: 52, borderRadius: 26, background: saved ? "rgba(52,211,153,0.18)" : GB, border: saved ? "1px solid rgba(52,211,153,0.4)" : "none", color: saved ? "#34d399" : "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", transition: "all 0.3s" }}>
-          {saved ? "✓ Guardado" : "Guardar cambios"}
+          {saved ? i.saved : i.saveC}
         </button>
       </div>
     </div>
@@ -739,12 +1057,61 @@ function EditProfileModal({ onClose }) {
 /* ═══════════════════════════════════════════
    GOLD MODAL
 ═══════════════════════════════════════════ */
-function GoldModal({ onClose }) {
+function GoldModal({ onClose, i }) {
   const GOLDG = "linear-gradient(135deg,#f5c518,#ffaa00,#ff6b35)";
+  const [dragY, setDragY] = useState(0);
+  const [closing, setClosing] = useState(false);
+  const startY = useRef(null);
+
+  const onPointerDown = (e) => {
+    startY.current = e.touches ? e.touches[0].clientY : e.clientY;
+  };
+  const onPointerMove = (e) => {
+    if (startY.current === null) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - startY.current;
+    if (dy > 0) setDragY(dy); // solo hacia abajo
+  };
+  const onPointerEnd = () => {
+    if (startY.current === null) return;
+    if (dragY > 80) {
+      setClosing(true);
+      setTimeout(onClose, 220);
+    } else {
+      setDragY(0);
+    }
+    startY.current = null;
+  };
+
   return (
-    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.76)", zIndex: 60, display: "flex", alignItems: "flex-end" }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", background: "rgba(7,7,22,0.99)", borderRadius: "24px 24px 0 0", borderTop: "1px solid rgba(245,197,24,0.35)", padding: "22px 18px 32px", maxHeight: "82%", overflowY: "auto" }}>
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
+    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${closing ? 0 : 0.76 - dragY * 0.001})`, zIndex: 60, display: "flex", alignItems: "flex-end", transition: closing ? "background 0.22s" : "none" }}>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          background: "rgba(7,7,22,0.99)",
+          borderRadius: "24px 24px 0 0",
+          borderTop: "1px solid rgba(245,197,24,0.35)",
+          padding: "22px 18px 32px",
+          maxHeight: "82%",
+          overflowY: "auto",
+          transform: closing ? "translateY(110%)" : `translateY(${dragY}px)`,
+          transition: (startY.current === null || closing) ? "transform 0.22s cubic-bezier(.34,1.4,.64,1)" : "none"
+        }}
+      >
+        <div
+          onTouchStart={onPointerDown}
+          onTouchMove={onPointerMove}
+          onTouchEnd={onPointerEnd}
+          onMouseDown={onPointerDown}
+          onMouseMove={onPointerMove}
+          onMouseUp={onPointerEnd}
+          onMouseLeave={onPointerEnd}
+          style={{ padding: "0 0 8px", cursor: "grab", touchAction: "none" }}
+        >
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: GOLDG, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 20px rgba(245,197,24,0.35)" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
@@ -752,7 +1119,7 @@ function GoldModal({ onClose }) {
           <div style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>Versyo Gold</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
-          {["Reconocimientos ilimitados", "Perfiles eventuales ilimitados", "Gestión de perfiles ilimitados", "Acceso a funciones AR"].map(f => (
+          {[i.g1, i.g2, i.g3, i.g4].map(f => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 11 }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(245,197,24,0.12)", border: "1px solid rgba(245,197,24,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f5c518" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
@@ -766,10 +1133,10 @@ function GoldModal({ onClose }) {
             <span style={{ fontSize: 34, fontWeight: 800, color: "#fff" }}>4,99€</span>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}> /mes</span>
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 4 }}>Cancela cuando quieras · Sin permanencia</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 4 }}>{i.gCancel}</div>
         </div>
-        <button style={{ width: "100%", height: 52, borderRadius: 26, background: GOLDG, border: "none", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Activar Versyo Gold →</button>
-        <button onClick={onClose} style={{ width: "100%", marginTop: 10, padding: 10, border: "none", background: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer" }}>Ahora no</button>
+        <button style={{ width: "100%", height: 52, borderRadius: 26, background: GOLDG, border: "none", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{i.gAct}</button>
+        <button onClick={onClose} style={{ width: "100%", marginTop: 10, padding: 10, border: "none", background: "none", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "pointer" }}>{i.gNot}</button>
       </div>
     </div>
   );
@@ -780,23 +1147,33 @@ function GoldModal({ onClose }) {
    handleScan limpia todo (query, selectedPerson, fase)
    — funciona tanto desde lupa central como desde NavBar
 ═══════════════════════════════════════════ */
-function BuscarScreen({ mode, onReset, onGoProfile }) {
+function BuscarScreen({ mode, onReset, onGoProfile, scanResetKey, i }) {
   const [phase, setPhase] = useState("idle");
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [query, setQuery] = useState("");
   const [qFocus, setQFocus] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryScanImg, setGalleryScanImg] = useState(null);
+  const [galleryPhase, setGalleryPhase] = useState("idle");
   const scanRef = useRef(null);
+  const galleryScanRef = useRef(null);
 
   const results = query.length > 0
-    ? FAMOUS_DB.filter(x => x.n.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
-    : qFocus ? FAMOUS_DB.slice(0, 6) : [];
+    ? FAMOUS_DB.filter(x => x.n.toLowerCase().includes(query.toLowerCase()))
+    : qFocus ? FAMOUS_DB : [];
 
-  // Limpia pantalla completa + lanza escaneo
-  // Llamado tanto desde la lupa central como desde NavBar al retomar el tab
+  useEffect(() => {
+    if (scanResetKey > 0) {
+      setQuery(""); setSelectedPerson(null); setQFocus(false);
+      setPhase("idle"); setShowGallery(false);
+      setGalleryScanImg(null); setGalleryPhase("idle");
+      clearTimeout(scanRef.current); clearTimeout(galleryScanRef.current);
+    }
+  }, [scanResetKey]);
+
   const handleScan = () => {
-    setQuery("");
-    setSelectedPerson(null);
-    setQFocus(false);
+    setQuery(""); setSelectedPerson(null); setQFocus(false);
+    setShowGallery(false); setGalleryScanImg(null); setGalleryPhase("idle");
     if (mode === "invisible") {
       setPhase("invwarn");
       setTimeout(() => setPhase(p => p === "invwarn" ? "idle" : p), 4000);
@@ -809,20 +1186,46 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
     scanRef.current = setTimeout(() => setPhase("found"), 2600);
   };
 
-  const handleClose = () => { setPhase("idle"); setSelectedPerson(null); };
-  useEffect(() => () => clearTimeout(scanRef.current), []);
+  const handleClose = () => {
+    setPhase("idle"); setSelectedPerson(null);
+    setGalleryScanImg(null); setGalleryPhase("idle");
+  };
 
+  useEffect(() => () => { clearTimeout(scanRef.current); clearTimeout(galleryScanRef.current); }, []);
+
+  const handleGalleryPick = (src) => {
+    setShowGallery(false);
+    setGalleryScanImg(src);
+    setGalleryPhase("scanning");
+    clearTimeout(galleryScanRef.current);
+    galleryScanRef.current = setTimeout(() => setGalleryPhase("found"), 2600);
+  };
+
+  const resolveRole = (p) => p && p.isFamous && i.roles[p.id] ? { ...p, role: i.roles[p.id] } : p;
   const lauraData = { n: "Laura Gómez", role: "CMO · Web3 & Fintech", img: FACE_IMG, fw: "82.4K", nets: ["linkedin", "instagram", "tiktok"], isFamous: false };
+
+  // Determine which background and center image to show
+  const isGalleryScan = galleryScanImg && (galleryPhase === "scanning" || galleryPhase === "found");
+  const isLauraScan = !isGalleryScan && (phase === "scanning" || phase === "found");
+  const bgImg = isGalleryScan ? galleryScanImg : CROWD_IMG;
+  const activePhase = isGalleryScan ? galleryPhase : phase;
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <PageHeader title="Buscar" onReset={onReset} />
+      <PageHeader title={i.search} onReset={onReset} />
       {/* Cámara */}
-      <div onClick={() => { if (phase === "idle" && !selectedPerson && !qFocus) handleScan(); }} style={{ flex: 1, position: "relative", overflow: "hidden", cursor: (phase === "found" || phase === "invwarn" || selectedPerson || qFocus) ? "default" : "crosshair" }}>
-        <img src={CROWD_IMG} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.32) blur(1px)" }} onError={e => e.target.style.display = "none"} />
-        {(phase === "scanning" || phase === "found") && (
+      <div onClick={() => { if (phase === "idle" && !selectedPerson && !qFocus && !showGallery && !galleryScanImg) handleScan(); }} style={{ flex: 1, position: "relative", overflow: "hidden", cursor: (phase === "found" || phase === "invwarn" || selectedPerson || qFocus || showGallery || galleryScanImg) ? "default" : "crosshair" }}>
+        <img src={bgImg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.32) blur(1px)" }} onError={e => e.target.style.display = "none"} />
+        {/* Foto central Laura */}
+        {isLauraScan && (
           <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-58%)", width: 190, height: 190, overflow: "hidden", zIndex: 3, borderRadius: 6 }}>
             <img src={FACE_IMG} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+          </div>
+        )}
+        {/* Foto central galería */}
+        {isGalleryScan && (
+          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-58%)", width: 190, height: 190, overflow: "hidden", zIndex: 3, borderRadius: 6 }}>
+            <img src={galleryScanImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
           </div>
         )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(3,3,12,0.55) 0%,rgba(3,3,12,0.05) 35%,rgba(3,3,12,0.05) 65%,rgba(3,3,12,0.75) 100%)", zIndex: 2 }} />
@@ -832,73 +1235,103 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>UWB</span>
           </div>
         )}
-        {/* Frase centrada verticalmente */}
-        {(phase === "idle" || phase === "scanning") && !qFocus && !query && !selectedPerson && (
-          <div style={{ position: "absolute", top: "45%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center", zIndex: 10, pointerEvents: "none" }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.85)", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}>Enfoca a la persona</div>
-            {phase === "scanning" && <div style={{ marginTop: 6, fontSize: 10, color: "rgba(255,255,255,0.6)" }}>Escaneando...</div>}
-          </div>
-        )}
         {/* Search bar */}
         <div style={{ position: "absolute", top: 10, left: 12, right: 12, zIndex: 25 }} onClick={e => e.stopPropagation()}>
           <div style={{ background: "rgba(4,4,20,0.9)", border: `1px solid ${qFocus ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.14)"}`, borderRadius: 14, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(20px)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             <input value={query} onChange={e => { setQuery(e.target.value); setSelectedPerson(null); }} onFocus={() => setQFocus(true)} onBlur={() => setTimeout(() => setQFocus(false), 200)}
-              placeholder="Buscar perfiles verificados..." style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, color: "#fff", caretColor: "#9d5cf5", minWidth: 0 }} />
+              placeholder={i.searchPh} style={{ flex: 1, background: "none", border: "none", outline: "none", fontSize: 13, color: "#fff", caretColor: "#9d5cf5", minWidth: 0 }} />
             {query && <button onClick={() => { setQuery(""); setSelectedPerson(null); }} style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, background: "none", border: "none", cursor: "pointer", padding: 0 }}>×</button>}
           </div>
           {results.length > 0 && !selectedPerson && (
             <div style={{ marginTop: 4, background: "rgba(4,4,22,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, overflow: "hidden", backdropFilter: "blur(20px)", maxHeight: 260, overflowY: "auto" }}>
-              {!query && <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 600, color: "rgba(157,92,245,0.8)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Perfiles destacados</div>}
-              {results.map((r, i) => (
+              {!query && <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 600, color: "rgba(157,92,245,0.8)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{i.featured}</div>}
+              {results.map((r, idx) => (
                 <div key={r.id} onClick={() => { setQuery(r.n); setQFocus(false); setSelectedPerson(r); }}
-                  style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 14px", cursor: "pointer", borderBottom: i < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{r.n[0]}</div>
+                  style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 14px", cursor: "pointer", borderBottom: idx < results.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                  {r.img
+                    ? <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundImage: `url(${r.img})`, backgroundSize: "cover", backgroundPosition: "center top", flexShrink: 0 }} />
+                    : <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{r.n[0]}</div>
+                  }
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{r.n}</span>
                       <svg width="12" height="12" viewBox="0 0 24 24"><path fill="#3b82f6" d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{r.h} · {r.fw} seguidores</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{r.h} · {r.fw} {i.foll}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", flexShrink: 0, maxWidth: 80, textAlign: "right" }}>{r.role}</div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", flexShrink: 0, maxWidth: 80, textAlign: "right" }}>{i.roles[r.id] || r.role}</div>
                 </div>
               ))}
               <div style={{ padding: "6px 14px 8px", background: "rgba(157,92,245,0.06)", borderTop: "1px solid rgba(157,92,245,0.12)" }}>
-                <span style={{ fontSize: 9, color: "#9d5cf5" }}>✓ Solo perfiles verificados Versyo</span>
+                <span style={{ fontSize: 9, color: "#9d5cf5" }}>{i.onlyV}</span>
               </div>
             </div>
           )}
         </div>
-        <ScanFrame phase={phase} />
-        {phase === "found" && <ProfileCard person={lauraData} onClose={handleClose} />}
-        {selectedPerson && <ProfileCard person={selectedPerson} onClose={() => setSelectedPerson(null)} />}
+        <ScanFrame phase={activePhase} />
+        {phase === "found" && !galleryScanImg && <ProfileCard person={lauraData} onClose={handleClose} i={i} />}
+        {selectedPerson && <ProfileCard person={resolveRole(selectedPerson)} onClose={() => setSelectedPerson(null)} i={i} />}
+        {galleryPhase === "found" && galleryScanImg && <ProfileCard person={RICARDO_DATA} onClose={handleClose} i={i} />}
         {phase === "invwarn" && (
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "calc(100% - 32px)", zIndex: 20 }} onClick={e => e.stopPropagation()}>
             <div onClick={onGoProfile} style={{ background: "rgba(4,4,20,0.95)", border: "1px solid rgba(245,56,90,0.5)", borderRadius: 18, padding: "22px 18px", textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 8 }}>Modo Invisible activo</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: 14 }}>Cambia a un modo activo para poder realizar búsquedas.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{i.invAct}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, marginBottom: 14 }}>{i.invMsg}</div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: GB, borderRadius: 20, padding: "8px 18px" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Ir a Mi Versyon →</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{i.goMy}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Galería modal */}
+        {showGallery && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 30, display: "flex", flexDirection: "column" }} onClick={() => setShowGallery(false)}>
+            <div onClick={e => e.stopPropagation()} style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ padding: "16px 18px 12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{i.selPhoto}</div>
+                <CloseBtn onClick={() => setShowGallery(false)} />
+              </div>
+              <div style={{ padding: "0 14px 14px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                {i.galInstr}
+              </div>
+              <div style={{ flex: 1, padding: "0 14px 14px", overflow: "auto" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {GALLERY_IMGS.map((src, i) => (
+                    <div key={i} onClick={() => handleGalleryPick(src)} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: "2px solid rgba(255,255,255,0.1)", transition: "border-color 0.2s" }}>
+                      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         )}
         <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", zIndex: 9, whiteSpace: "nowrap", pointerEvents: "none" }}>
           <div style={{ background: "rgba(0,0,0,0.65)", borderRadius: 20, padding: "5px 14px" }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.88)" }}>
-              {phase === "idle" ? "Buscando perfiles cercanos" : phase === "scanning" ? "Identificando..." : phase === "found" ? "Perfil identificado" : ""}
+            <span style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.88)", textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}>
+              {(activePhase === "idle" && !galleryScanImg) ? i.point : (activePhase === "scanning") ? i.iding : (activePhase === "found") ? i.found : ""}
             </span>
           </div>
         </div>
       </div>
-      {/* Lupa central — también limpia y escanea */}
-      <div style={{ background: "rgba(3,3,12,0.98)", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "11px 20px 13px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
-        <button onClick={handleScan} style={{ width: 70, height: 70, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.9)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: phase === "scanning" ? "0 0 0 10px rgba(0,220,200,0.1)" : "none", transition: "box-shadow 0.4s" }}>
-          <div style={{ width: 54, height: 54, borderRadius: "50%", background: phase === "scanning" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.94)", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.25s" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={phase === "scanning" ? "rgba(15,15,35,0.5)" : "#0d0d1f"} strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+      {/* Barra inferior: botón galería + lupa central */}
+      <div style={{ background: "rgba(3,3,12,0.98)", borderTop: "1px solid rgba(255,255,255,0.1)", padding: "11px 20px 13px", display: "flex", alignItems: "center", flexShrink: 0 }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <button onClick={() => { if (mode !== "invisible") setShowGallery(true); }} style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+          </button>
+        </div>
+        <button onClick={handleScan} style={{ width: 70, height: 70, borderRadius: "50%", border: "3px solid rgba(255,255,255,0.9)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (activePhase === "scanning") ? "0 0 0 10px rgba(0,220,200,0.1)" : "none", transition: "box-shadow 0.4s", flexShrink: 0 }}>
+          <div style={{ width: 54, height: 54, borderRadius: "50%", background: (activePhase === "scanning") ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.94)", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.25s" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={(activePhase === "scanning") ? "rgba(15,15,35,0.5)" : "#0d0d1f"} strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           </div>
         </button>
+        <div style={{ flex: 1 }} />
       </div>
     </div>
   );
@@ -907,23 +1340,26 @@ function BuscarScreen({ mode, onReset, onGoProfile }) {
 /* ═══════════════════════════════════════════
    MENSAJES SCREEN
 ═══════════════════════════════════════════ */
-function MensajesScreen({ onReset }) {
-  const [open, setOpen] = useState(null);
+function MensajesScreen({ onReset, i, openId, setOpenId }) {
+  const CONVOS = CONVOS_BASE.map((c, idx) => ({ ...c, pre: i.cPre[idx] }));
+  const CHAT_MESSAGES = i.cMsg.map((txt, idx) => ({ me: idx % 2 === 1, t: txt, time: ["20:14","20:15","20:16","20:17","20:18"][idx] }));
+  const open = openId;
+  const setOpen = setOpenId;
   const cv = CONVOS.find(c => c.id === open);
   const total = CONVOS.reduce((s, c) => s + c.u, 0);
 
   if (open !== null && cv) return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <div style={{ padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 12, flexShrink: 0, background: "rgba(3,3,12,0.95)" }}>
-        <button onClick={() => setOpen(null)} style={{ color: "#3b82f6", fontSize: 15, fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>← Atrás</button>
+        <button onClick={() => setOpen(null)} style={{ color: "#3b82f6", fontSize: 15, fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>{i.backB}</button>
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: cv.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff" }}>{cv.ini}</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{cv.n}</div>
-          <div style={{ fontSize: 11, color: cv.on ? "#34d399" : "rgba(255,255,255,0.35)" }}>{cv.on ? "En línea" : "Desconectado"}</div>
+          <div style={{ fontSize: 11, color: cv.on ? "#34d399" : "rgba(255,255,255,0.35)" }}>{cv.on ? i.online : i.offline}</div>
         </div>
       </div>
       <div style={{ flex: 1, overflow: "auto", padding: "14px 13px", display: "flex", flexDirection: "column", gap: 9 }}>
-        <div style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Conectados a través de Versyo · Hoy</div>
+        <div style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>{i.connToday}</div>
         {CHAT_MESSAGES.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.me ? "flex-end" : "flex-start" }}>
             <div style={{ maxWidth: "74%", background: m.me ? GB : "rgba(255,255,255,0.09)", border: m.me ? "none" : "1px solid rgba(255,255,255,0.1)", borderRadius: m.me ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 13px" }}>
@@ -934,7 +1370,7 @@ function MensajesScreen({ onReset }) {
         ))}
       </div>
       <div style={{ padding: "10px 13px", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 8, flexShrink: 0, background: "rgba(3,3,12,0.95)" }}>
-        <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 22, padding: "10px 14px", fontSize: 13, color: "rgba(255,255,255,0.35)" }}>Escribe un mensaje...</div>
+        <div style={{ flex: 1, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 22, padding: "10px 14px", fontSize: 13, color: "rgba(255,255,255,0.35)" }}>{i.writeMsg}</div>
         <button style={{ width: 40, height: 40, borderRadius: "50%", background: GB, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
         </button>
@@ -945,7 +1381,7 @@ function MensajesScreen({ onReset }) {
   return (
     <div style={{ flex: 1, overflow: "auto", padding: "4px 15px 14px" }}>
       <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 11 }}>
-        {CONVOS.length} conversaciones{total > 0 ? ` · ${total} sin leer` : ""}
+        {CONVOS.length} {i.convos}{total > 0 ? ` · ${total} ${i.unread}` : ""}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, overflow: "hidden" }}>
         {CONVOS.map((c, i) => (
@@ -972,17 +1408,17 @@ function MensajesScreen({ onReset }) {
 /* ═══════════════════════════════════════════
    PERFIL / MI VERSYON
 ═══════════════════════════════════════════ */
-function ProfileScreen({ mode, onModeChange, onReset }) {
+function ProfileScreen({ mode, onModeChange, onReset, i, lang, onLang }) {
   const [goldModal, setGoldModal] = useState(false);
   const [netModal, setNetModal] = useState(null);
   const [editModal, setEditModal] = useState(false);
-  const [adhoc, setAdhoc] = useState({ photo: false, video: false, status: "De fiesta con amigos 🎉" });
+  const [adhoc, setAdhoc] = useState({ photo: false, video: false, status: i.asDef });
 
   const MODES = [
-    { id: "invisible", label: "Invisible",        desc: "No te ven · No puedes buscar",             col: "rgba(255,255,255,0.3)", bg: "rgba(255,255,255,0.04)" },
-    { id: "pro",       label: "Profesional",       desc: "LinkedIn · Twitter",                        col: "#3b82f6",               bg: "rgba(59,130,246,0.11)"  },
-    { id: "ocio",      label: "Ocio",              desc: "Instagram · TikTok · Facebook · Tinder",   col: "#f5385a",               bg: "rgba(245,56,90,0.11)"   },
-    { id: "adhoc",     label: "Ad-Hoc (Personal)", desc: "Tu perfil propio Versyo · Sin redes ext.", col: "#34d399",               bg: "rgba(52,211,153,0.1)"   },
+    { id: "invisible", label: i.mInv, desc: i.mInvD,             col: "rgba(255,255,255,0.3)", bg: "rgba(255,255,255,0.04)" },
+    { id: "pro",       label: i.mPro, desc: i.mProD,                        col: "#3b82f6",               bg: "rgba(59,130,246,0.11)"  },
+    { id: "ocio",      label: i.mOcio, desc: i.mOcioD,   col: "#f5385a",               bg: "rgba(245,56,90,0.11)"   },
+    { id: "adhoc",     label: i.mAdhoc, desc: i.mAdhocD, col: "#34d399",               bg: "rgba(52,211,153,0.1)"   },
   ];
   const activeMode = MODES.find(m => m.id === mode);
   const shownNets = mode === "pro" ? NETS_PRO : mode === "ocio" ? NETS_OCIO : [];
@@ -995,7 +1431,7 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
         <div style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#f5c518,#ff6b35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
         </div>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>Pásate a Versyo Gold</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>{i.upgrade}</span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,197,24,0.7)" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
       </div>
 
@@ -1003,7 +1439,7 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
       <div onClick={() => setEditModal(true)} style={{ margin: "0 14px 16px", background: "linear-gradient(135deg,rgba(157,92,245,0.16),rgba(245,56,90,0.1))", border: "1px solid rgba(157,92,245,0.24)", borderRadius: 20, padding: 16, cursor: "pointer", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 10, right: 12, display: "flex", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "4px 9px" }}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Editar</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{i.editL}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
           <div style={{ position: "relative" }}>
@@ -1012,13 +1448,13 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>Tu perfil Versyo</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{i.yourP}</span>
               <div style={{ background: GB, borderRadius: 20, padding: "2px 8px" }}><span style={{ fontSize: 9, fontWeight: 700, color: "#fff" }}>FREE</span></div>
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>Biometría verificada · GDPR</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginBottom: 6 }}>{i.verBio}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#34d399" }} />
-              <span style={{ fontSize: 10, color: "#34d399", fontWeight: 500 }}>Modo: {activeMode?.label}</span>
+              <span style={{ fontSize: 10, color: "#34d399", fontWeight: 500 }}>{i.modeL}: {activeMode?.label}</span>
             </div>
           </div>
         </div>
@@ -1026,9 +1462,9 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
 
       {/* 4 modos */}
       <div style={{ padding: "0 14px", marginBottom: 18 }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Mi Versyon — Modo activo</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>{i.actMode}</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 11, padding: "8px 12px", lineHeight: 1.6 }}>
-          Solo <strong style={{ color: "#fff" }}>un modo activo</strong> a la vez.
+          {i.oneP} <strong style={{ color: "#fff" }}>{i.oneM}</strong> {i.oneE}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {MODES.map(v => {
@@ -1051,22 +1487,22 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
       {/* Ad-Hoc */}
       {mode === "adhoc" && (
         <div style={{ padding: "0 14px", marginBottom: 16 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 9 }}>Perfil ad-hoc para este evento</div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 9 }}>{i.adhocT}</div>
           <div style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 18, padding: 15, display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>Estado</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>{i.statusL}</div>
               <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "10px 13px", fontSize: 13, color: "#fff" }}>{adhoc.status}</div>
               <div style={{ marginTop: 6, display: "flex", gap: 5, flexWrap: "wrap" }}>
-                {["De fiesta 🎉", "Networking 💼", "En un festival 🎵", "Conociendo gente 👋"].map(s => (
+                {[i.as1, i.as2, i.as3, i.as4].map(s => (
                   <span key={s} onClick={() => setAdhoc(a => ({ ...a, status: s }))} style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 20, padding: "3px 10px", fontSize: 10, color: "#34d399", cursor: "pointer" }}>{s}</span>
                 ))}
               </div>
             </div>
-            {[{ k: "photo", label: "Foto" }, { k: "video", label: "Video (30s)" }].map(({ k, label }) => (
+            {[{ k: "photo", label: i.photoL }, { k: "video", label: i.videoL }].map(({ k, label }) => (
               <div key={k}>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</div>
                 <div onClick={() => setAdhoc(a => ({ ...a, [k]: true }))} style={{ height: 64, background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(52,211,153,0.35)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer" }}>
-                  <span style={{ fontSize: 12, color: "rgba(52,211,153,0.7)" }}>{adhoc[k] ? `${label} añadido ✓` : `Subir ${label.toLowerCase()}`}</span>
+                  <span style={{ fontSize: 12, color: "rgba(52,211,153,0.7)" }}>{adhoc[k] ? `${label} ${i.addedS}` : `${i.uploadS} ${label.toLowerCase()}`}</span>
                 </div>
               </div>
             ))}
@@ -1078,7 +1514,7 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
       {shownNets.length > 0 && (
         <div style={{ padding: "0 14px", marginBottom: 16 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 9 }}>
-            {mode === "pro" ? "Redes conectadas a tu perfil profesional" : "Redes conectadas a tu perfil de ocio"}
+            {mode === "pro" ? i.proNL : i.ocioNL}
           </div>
           <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 18, padding: "15px 13px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "13px 6px", justifyItems: "center" }}>
@@ -1087,7 +1523,7 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
                 return (
                   <div key={key} onClick={() => setNetModal(key)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
                     <div style={{ width: 50, height: 50, borderRadius: 13, background: n.bg, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
-                      <NetSVG net={key} size={26} />
+                      <NetSVG net={key} size={60} />
                     </div>
                     <span style={{ fontSize: 9, color: "rgba(255,255,255,0.55)", textAlign: "center" }}>{n.label}</span>
                   </div>
@@ -1101,11 +1537,11 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
       {/* Reset */}
       <div style={{ padding: "0 14px", marginBottom: 6 }}>
         <button onClick={onReset} style={{ width: "100%", padding: 11, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.4)", fontSize: 11, cursor: "pointer", letterSpacing: "0.04em" }}>
-          ↺ Reiniciar Demo
+          {i.reset}
         </button>
       </div>
 
-      {goldModal && <GoldModal onClose={() => setGoldModal(false)} />}
+      {goldModal && <GoldModal onClose={() => setGoldModal(false)} i={i} />}
 
       {netModal && (() => {
         const n = NET_INFO[netModal];
@@ -1115,31 +1551,31 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                 <div style={{ width: 48, height: 48, borderRadius: 14, background: n.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <NetSVG net={netModal} size={26} />
+                  <NetSVG net={netModal} size={60} />
                 </div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{n.label}</div>
-                  <div style={{ fontSize: 11, color: "#9d5cf5" }}>Identidad verificada Versyo</div>
+                  <div style={{ fontSize: 11, color: "#9d5cf5" }}>{i.verId}</div>
                 </div>
               </div>
               <div style={{ background: "rgba(157,92,245,0.08)", border: "1px solid rgba(157,92,245,0.22)", borderRadius: 14, padding: "14px 15px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.65 }}>
-                  <strong style={{ color: "#fff" }}>Versyo está lanzando tu identidad verificada en {n.label}...</strong><br /><br />
-                  Tu audiencia te encontrará aquí primero. Sin cuentas falsas. Sin fricción.
+                  <strong style={{ color: "#fff" }}>{i.launchId(n.label)}</strong><br /><br />
+                  {i.audMsg}
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 13px", background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 12, marginBottom: 16 }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#34d399", flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: "#34d399" }}>Perfil verificado y activo en Versyo</span>
+                <span style={{ fontSize: 11, color: "#34d399" }}>{i.profAct}</span>
               </div>
-              <button style={{ width: "100%", height: 48, borderRadius: 24, background: GB, border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Abrir {n.label} verificado →</button>
-              <button onClick={() => setNetModal(null)} style={{ width: "100%", marginTop: 10, padding: 10, border: "none", background: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, cursor: "pointer" }}>Cerrar</button>
+              <button style={{ width: "100%", height: 48, borderRadius: 24, background: GB, border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{i.openV(n.label)}</button>
+              <button onClick={() => setNetModal(null)} style={{ width: "100%", marginTop: 10, padding: 10, border: "none", background: "none", color: "rgba(255,255,255,0.35)", fontSize: 13, cursor: "pointer" }}>{i.closeB}</button>
             </div>
           </div>
         );
       })()}
 
-      {editModal && <EditProfileModal onClose={() => setEditModal(false)} />}
+      {editModal && <EditProfileModal onClose={() => setEditModal(false)} i={i} lang={lang} onLang={onLang} />}
     </div>
   );
 }
@@ -1148,31 +1584,50 @@ function ProfileScreen({ mode, onModeChange, onReset }) {
    ROOT APP
 ═══════════════════════════════════════════ */
 function VersyoApp() {
-  const [screen, setScreen] = useState("ob");
+  const [lang, setLang] = useState("es");
+  const i = I[lang];
+  const [screen, setScreen] = useState(() => {
+    try {
+      return sessionStorage.getItem("versyo_access") === "ok" ? "ob" : "gate";
+    } catch (e) {
+      return "gate";
+    }
+  });
   const [tab, setTab] = useState("finder");
   const [mode, setMode] = useState("pro");
+  const [scanResetKey, setScanResetKey] = useState(0);
+  const [openChatId, setOpenChatId] = useState(null);
 
-  const totalUnread = CONVOS.reduce((s, c) => s + c.u, 0);
-  const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); };
+  const totalUnread = CONVOS_BASE.reduce((s, c) => s + c.u, 0);
+  const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); setOpenChatId(null); };
+
+  const handleTab = (id) => {
+    if (id === "finder" && tab === "finder") {
+      setScanResetKey(k => k + 1);
+    }
+    if (id !== "chat") setOpenChatId(null);
+    setTab(id);
+  };
 
   return (
     <div className="versyo-outer">
       <div className="versyo-shell">
         <StatusBar />
-        {screen === "ob"          && <OnboardingScreen onDone={() => setScreen("auth")} />}
-        {screen === "auth"        && <AuthGateScreen onLogin={() => setScreen("login")} onRegister={() => setScreen("reg_consent")} />}
-        {screen === "login"       && <LoginScreen onBack={() => setScreen("auth")} onDone={() => { setScreen("app"); setTab("finder"); }} />}
-        {screen === "reg_consent" && <RegisterConsentScreen onBack={() => setScreen("auth")} onAccept={() => setScreen("reg_face")} />}
-        {screen === "reg_face"    && <RegisterFaceScreen onBack={() => setScreen("reg_consent")} onDone={() => setScreen("reg_nets")} />}
-        {screen === "reg_nets"    && <RegisterNetworksScreen onBack={() => setScreen("reg_face")} onDone={() => { setScreen("app"); setTab("finder"); }} />}
+        {screen === "gate"        && <AccessGateScreen onUnlock={() => setScreen("ob")} />}
+        {screen === "ob"          && <OnboardingScreen onDone={() => setScreen("auth")} i={i} onLang={setLang} />}
+        {screen === "auth"        && <AuthGateScreen onLogin={() => setScreen("login")} onRegister={() => setScreen("reg_consent")} i={i} />}
+        {screen === "login"       && <LoginScreen onBack={() => setScreen("auth")} onDone={() => { setScreen("app"); setTab("finder"); }} i={i} />}
+        {screen === "reg_consent" && <RegisterConsentScreen onBack={() => setScreen("auth")} onAccept={() => setScreen("reg_face")} i={i} />}
+        {screen === "reg_face"    && <RegisterFaceScreen onBack={() => setScreen("reg_consent")} onDone={() => setScreen("reg_nets")} i={i} />}
+        {screen === "reg_nets"    && <RegisterNetworksScreen onBack={() => setScreen("reg_face")} onDone={() => { setScreen("app"); setTab("finder"); }} i={i} />}
         {screen === "app" && (
           <>
-            {tab === "chat"    && <PageHeader title="Mensajes" onReset={reset} />}
-            {tab === "profile" && <PageHeader title="Mi Versyon" onReset={reset} />}
-            {tab === "finder"  && <BuscarScreen mode={mode} onReset={reset} onGoProfile={() => setTab("profile")} />}
-            {tab === "chat"    && <MensajesScreen onReset={reset} />}
-            {tab === "profile" && <ProfileScreen mode={mode} onModeChange={setMode} onReset={reset} />}
-            <NavBar tab={tab} onTab={setTab} unread={totalUnread} />
+            {tab === "chat" && openChatId === null && <PageHeader title={i.msgs} onReset={reset} />}
+            {tab === "profile" && <PageHeader title={i.myV} onReset={reset} />}
+            {tab === "finder"  && <BuscarScreen mode={mode} onReset={reset} onGoProfile={() => setTab("profile")} scanResetKey={scanResetKey} i={i} />}
+            {tab === "chat"    && <MensajesScreen onReset={reset} i={i} openId={openChatId} setOpenId={setOpenChatId} />}
+            {tab === "profile" && <ProfileScreen mode={mode} onModeChange={setMode} onReset={reset} i={i} lang={lang} onLang={setLang} />}
+            <NavBar tab={tab} onTab={handleTab} unread={totalUnread} i={i} />
           </>
         )}
       </div>
