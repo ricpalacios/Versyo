@@ -384,28 +384,58 @@ function ScanFrame({ phase }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const angRef = useRef(0);
+  const foundAtRef = useRef(null);
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d");
     const W = 310, H = 420;
     c.width = W; c.height = H;
     const sq = 190, fx = (W - sq) / 2, fy = (H - sq) / 2 - 10, cLen = 28;
+    if (phase === "found" && foundAtRef.current === null) {
+      foundAtRef.current = performance.now();
+    }
+    if (phase !== "found") {
+      foundAtRef.current = null;
+    }
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
       if (phase !== "scanning" && phase !== "found") { rafRef.current = requestAnimationFrame(draw); return; }
       angRef.current += 0.8;
       const a = angRef.current, pulse = 0.5 + 0.5 * Math.sin(a * 0.04);
+      // Flash al detectar (primeros 600ms en 'found')
+      let flash = 0;
+      if (phase === "found" && foundAtRef.current) {
+        const elapsed = performance.now() - foundAtRef.current;
+        if (elapsed < 600) {
+          // 0→1 en primeros 200ms, luego 1→0 en 400ms
+          flash = elapsed < 200 ? elapsed / 200 : Math.max(0, 1 - (elapsed - 200) / 400);
+        }
+      }
+      const cornerAlpha = phase === "found"
+        ? (foundAtRef.current && performance.now() - foundAtRef.current > 600 ? 0.35 : 0.7 + flash * 0.3)
+        : (0.7 + pulse * 0.3);
       [[fx, fy, 1, 1], [fx + sq, fy, -1, 1], [fx, fy + sq, 1, -1], [fx + sq, fy + sq, -1, -1]].forEach(([cx, cy, dx, dy]) => {
-        ctx.save(); ctx.strokeStyle = `rgba(0,220,200,${0.7 + pulse * 0.3})`; ctx.lineWidth = 2.5; ctx.lineCap = "round";
-        ctx.shadowColor = "rgba(0,220,200,0.9)"; ctx.shadowBlur = 8;
+        ctx.save();
+        // Color cambia a verde brillante en el flash, luego vuelve al teal
+        const col = flash > 0
+          ? `rgba(${Math.round(0 + flash * 80)},${Math.round(220 + flash * 35)},${Math.round(200 - flash * 100)},${cornerAlpha})`
+          : `rgba(0,220,200,${cornerAlpha})`;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.5 + flash * 1.5;
+        ctx.lineCap = "round";
+        ctx.shadowColor = flash > 0 ? "rgba(80,255,150,1)" : "rgba(0,220,200,0.9)";
+        ctx.shadowBlur = 8 + flash * 18;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + dx * cLen, cy); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + dy * cLen); ctx.stroke();
         ctx.restore();
       });
-      ctx.save(); ctx.strokeStyle = `rgba(180,80,255,${0.3 + pulse * 0.2})`; ctx.lineWidth = 1;
-      ctx.beginPath();
-      try { ctx.roundRect(fx, fy, sq, sq, 14); } catch (e) { ctx.rect(fx, fy, sq, sq); }
-      ctx.stroke(); ctx.restore();
+      // Marco interior solo en scanning o en flash
+      if (phase === "scanning" || flash > 0) {
+        ctx.save(); ctx.strokeStyle = `rgba(180,80,255,${(0.3 + pulse * 0.2) * (phase === "found" ? flash : 1)})`; ctx.lineWidth = 1;
+        ctx.beginPath();
+        try { ctx.roundRect(fx, fy, sq, sq, 14); } catch (e) { ctx.rect(fx, fy, sq, sq); }
+        ctx.stroke(); ctx.restore();
+      }
       if (phase === "scanning") {
         const t = ((a * 0.012) % 1), scanY = fy + t * sq;
         if (scanY >= fy && scanY <= fy + sq) {
@@ -431,11 +461,11 @@ function ProfileCard({ person, onClose, i }) {
   const [connState, setConnState] = useState("idle");
   const [visible, setVisible] = useState(false);
   const [tappedNets, setTappedNets] = useState({});
-  useEffect(() => { const t = setTimeout(() => setVisible(true), 40); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setVisible(true), 180); return () => clearTimeout(t); }, []);
 
   return (
-    <div style={{ position: "absolute", bottom: 58, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 14}px) scale(${visible ? 1 : 0.96})`, opacity: visible ? 1 : 0, transition: "all 0.5s cubic-bezier(.34,1.4,.64,1)", width: 292, zIndex: 22 }}>
-      <div style={{ background: "rgba(8,6,28,0.92)", border: "1px solid rgba(180,80,255,0.5)", borderRadius: 22, padding: "15px 16px 17px", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 0 40px rgba(180,80,255,0.22)", position: "relative", overflow: "visible" }}>
+    <div style={{ position: "absolute", bottom: 58, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 32}px) scale(${visible ? 1 : 0.86})`, opacity: visible ? 1 : 0, transition: "all 0.55s cubic-bezier(.22,1.4,.36,1)", width: 292, zIndex: 22 }}>
+      <div style={{ background: "rgba(8,6,28,0.92)", border: "1px solid rgba(180,80,255,0.5)", borderRadius: 22, padding: "15px 16px 17px", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: visible ? "0 0 40px rgba(180,80,255,0.22)" : "0 0 60px rgba(180,80,255,0.6)", transition: "box-shadow 0.7s ease", position: "relative", overflow: "visible" }}>
         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1.5, background: "linear-gradient(90deg,transparent,rgba(180,80,255,0.9),rgba(240,100,160,0.7),transparent)", borderRadius: "0 0 2px 2px" }} />
         {/* Cabecera */}
         <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 11 }}>
@@ -776,11 +806,13 @@ function AuthGateScreen({ onLogin, onRegister, i }) {
         <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10 }}><VLogo size={384} /></div>
         <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: 3, color: "#fff", marginBottom: 6 }}>VERSYO</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em", marginBottom: 40, textAlign: "center" }}>{i.authSub}</div>
-        <div style={{ display: "flex", marginBottom: 32, position: "relative" }}>
-          {["#e03c6e", "#6366f1", "#1d4ed8", "#f06a1e", "#34d399"].map((col, i) => (
-            <div key={i} style={{ width: 40, height: 40, borderRadius: "50%", background: col, border: "2.5px solid #03030c", marginLeft: i > 0 ? -10 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{["L", "M", "A", "S", "R"][i]}</div>
-          ))}
-          <div style={{ position: "absolute", right: -52, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>{i.authUsers}</div>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 32, gap: 12 }}>
+          <div style={{ display: "flex" }}>
+            {["#e03c6e", "#6366f1", "#1d4ed8", "#f06a1e"].map((col, i) => (
+              <div key={i} style={{ width: 40, height: 40, borderRadius: "50%", background: col, border: "2.5px solid #03030c", marginLeft: i > 0 ? -10 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{["L", "M", "A", "S"][i]}</div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>{i.authUsers}</div>
         </div>
         <div style={{ textAlign: "center" }}>
           <span style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>{i.authT1}</span><br />
@@ -1027,10 +1059,59 @@ function EditProfileModal({ onClose, i, lang, onLang }) {
 ═══════════════════════════════════════════ */
 function GoldModal({ onClose, i }) {
   const GOLDG = "linear-gradient(135deg,#f5c518,#ffaa00,#ff6b35)";
+  const [dragY, setDragY] = useState(0);
+  const [closing, setClosing] = useState(false);
+  const startY = useRef(null);
+
+  const onPointerDown = (e) => {
+    startY.current = e.touches ? e.touches[0].clientY : e.clientY;
+  };
+  const onPointerMove = (e) => {
+    if (startY.current === null) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - startY.current;
+    if (dy > 0) setDragY(dy); // solo hacia abajo
+  };
+  const onPointerEnd = () => {
+    if (startY.current === null) return;
+    if (dragY > 80) {
+      setClosing(true);
+      setTimeout(onClose, 220);
+    } else {
+      setDragY(0);
+    }
+    startY.current = null;
+  };
+
   return (
-    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.76)", zIndex: 60, display: "flex", alignItems: "flex-end" }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", boxSizing: "border-box", background: "rgba(7,7,22,0.99)", borderRadius: "24px 24px 0 0", borderTop: "1px solid rgba(245,197,24,0.35)", padding: "22px 18px 32px", maxHeight: "82%", overflowY: "auto" }}>
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
+    <div onClick={onClose} style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${closing ? 0 : 0.76 - dragY * 0.001})`, zIndex: 60, display: "flex", alignItems: "flex-end", transition: closing ? "background 0.22s" : "none" }}>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          background: "rgba(7,7,22,0.99)",
+          borderRadius: "24px 24px 0 0",
+          borderTop: "1px solid rgba(245,197,24,0.35)",
+          padding: "22px 18px 32px",
+          maxHeight: "82%",
+          overflowY: "auto",
+          transform: closing ? "translateY(110%)" : `translateY(${dragY}px)`,
+          transition: (startY.current === null || closing) ? "transform 0.22s cubic-bezier(.34,1.4,.64,1)" : "none"
+        }}
+      >
+        <div
+          onTouchStart={onPointerDown}
+          onTouchMove={onPointerMove}
+          onTouchEnd={onPointerEnd}
+          onMouseDown={onPointerDown}
+          onMouseMove={onPointerMove}
+          onMouseUp={onPointerEnd}
+          onMouseLeave={onPointerEnd}
+          style={{ padding: "0 0 8px", cursor: "grab", touchAction: "none" }}
+        >
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.2)", margin: "0 auto 18px" }} />
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: GOLDG, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 20px rgba(245,197,24,0.35)" }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
