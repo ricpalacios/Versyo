@@ -430,6 +430,7 @@ function ScanFrame({ phase }) {
 function ProfileCard({ person, onClose, i }) {
   const [connState, setConnState] = useState("idle");
   const [visible, setVisible] = useState(false);
+  const [tappedNets, setTappedNets] = useState({});
   useEffect(() => { const t = setTimeout(() => setVisible(true), 40); return () => clearTimeout(t); }, []);
 
   return (
@@ -472,9 +473,9 @@ function ProfileCard({ person, onClose, i }) {
             <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
               {(person.nets || []).map(key => {
                 const n = NET_INFO[key];
-                const [tapped, setTapped] = useState(false);
+                const tapped = !!tappedNets[key];
                 return (
-                  <div key={key} onClick={() => setTapped(t => !t)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
+                  <div key={key} onClick={() => setTappedNets(s => ({ ...s, [key]: !s[key] }))} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, cursor: "pointer" }}>
                     <div style={{ width: 46, height: 46, borderRadius: 13, background: n.bg, display: "flex", alignItems: "center", justifyContent: "center", border: tapped ? "2px solid rgba(52,211,153,0.7)" : "1px solid rgba(255,255,255,0.12)", boxShadow: tapped ? "0 0 12px rgba(52,211,153,0.3)" : "none", transition: "all 0.2s" }}>
                       <NetSVG net={key} size={23} />
                     </div>
@@ -616,82 +617,81 @@ function AccessGateScreen({ onUnlock }) {
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 26px", position: "relative", overflow: "hidden" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "32px 26px 36px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translateX(-50%)", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.14),transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ marginBottom: 18, animation: error ? "shake 0.4s" : "none" }}>
-        <VLogo size={120} />
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 4 }}>VERSYO</div>
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", marginBottom: 36, textAlign: "center" }}>The Visual Identity Protocol</div>
+      <div style={{ position: "absolute", top: 52, left: "50%", transform: "translateX(-50%)", zIndex: 10, animation: error ? "shake 0.4s" : "none" }}><VLogo size={384} /></div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 180, width: "100%" }}>
+        <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 5, color: "#fff", marginBottom: 4 }}>VERSYO</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: 36, textAlign: "center" }}>The Visual Identity Protocol</div>
 
-      <div style={{ width: "100%", maxWidth: 320 }}>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-          Acceso · Access
+        <div style={{ width: "100%", maxWidth: 320 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+            Acceso · Access
+          </div>
+          <input
+            type="password"
+            value={pass}
+            onChange={e => setPass(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submit()}
+            disabled={isLocked}
+            autoFocus
+            placeholder="••••••••"
+            style={{
+              width: "100%",
+              height: 52,
+              padding: "0 18px",
+              borderRadius: 14,
+              border: error ? "1.5px solid #f5385a" : "1.5px solid rgba(255,255,255,0.14)",
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              color: "#fff",
+              fontSize: 16,
+              letterSpacing: "0.2em",
+              textAlign: "center",
+              outline: "none",
+              boxSizing: "border-box",
+              opacity: isLocked ? 0.4 : 1,
+              transition: "border-color 0.2s"
+            }}
+          />
+          {isLocked && (
+            <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+              Bloqueado · Locked — {remaining}s
+            </div>
+          )}
+          {!isLocked && error && (
+            <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
+              Contraseña incorrecta · Wrong password
+            </div>
+          )}
         </div>
-        <input
-          type="password"
-          value={pass}
-          onChange={e => setPass(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && submit()}
-          disabled={isLocked}
-          autoFocus
-          placeholder="••••••••"
-          style={{
-            width: "100%",
-            height: 52,
-            padding: "0 18px",
-            borderRadius: 14,
-            border: error ? "1.5px solid #f5385a" : "1.5px solid rgba(255,255,255,0.14)",
-            background: "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            color: "#fff",
-            fontSize: 16,
-            letterSpacing: "0.2em",
-            textAlign: "center",
-            outline: "none",
-            boxSizing: "border-box",
-            opacity: isLocked ? 0.4 : 1,
-            transition: "border-color 0.2s"
-          }}
-        />
-        {isLocked && (
-          <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
-            Bloqueado · Locked — {remaining}s
-          </div>
-        )}
-        {!isLocked && error && (
-          <div style={{ fontSize: 11, color: "rgba(245,56,90,0.85)", textAlign: "center", marginTop: 10, letterSpacing: "0.05em" }}>
-            Contraseña incorrecta · Wrong password
-          </div>
-        )}
-        <button
-          onClick={submit}
-          disabled={isLocked || !pass}
-          style={{
-            width: "100%",
-            height: 52,
-            marginTop: 16,
-            borderRadius: 26,
-            background: GB,
-            border: "none",
-            color: "#fff",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: (isLocked || !pass) ? "not-allowed" : "pointer",
-            opacity: (isLocked || !pass) ? 0.45 : 1,
-            boxShadow: "0 8px 28px rgba(157,92,245,0.28)",
-            letterSpacing: "0.05em"
-          }}
-        >
-          Continuar · Continue
-        </button>
       </div>
+      <button
+        onClick={submit}
+        disabled={isLocked || !pass}
+        style={{
+          width: "100%",
+          height: 54,
+          borderRadius: 27,
+          background: GB,
+          border: "none",
+          color: "#fff",
+          fontSize: 16,
+          fontWeight: 700,
+          cursor: (isLocked || !pass) ? "not-allowed" : "pointer",
+          opacity: (isLocked || !pass) ? 0.45 : 1,
+          boxShadow: "0 8px 28px rgba(157,92,245,0.28)",
+          letterSpacing: "0.02em"
+        }}
+      >
+        Continuar · Continue
+      </button>
       <style>{`
         @keyframes shake {
-          0%,100% { transform: translateX(0); }
-          25% { transform: translateX(-6px); }
-          75% { transform: translateX(6px); }
+          0%,100% { transform: translateX(-50%); }
+          25% { transform: translateX(calc(-50% - 6px)); }
+          75% { transform: translateX(calc(-50% + 6px)); }
         }
       `}</style>
     </div>
@@ -805,7 +805,7 @@ function LoginScreen({ onBack, onDone, i }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto", position: "relative" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 32 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
         <VLogo size={40} />
       </div>
@@ -841,7 +841,7 @@ function RegisterConsentScreen({ onBack, onAccept, i }) {
       <div style={{ position: "absolute", top: "25%", left: "50%", transform: "translateX(-50%)", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle,rgba(157,92,245,0.1),transparent 70%)", pointerEvents: "none" }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 24 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
         <VLogo size={40} />
       </div>
@@ -874,7 +874,7 @@ function RegisterFaceScreen({ onBack, onDone, i }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto", position: "relative" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 18 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
         <VLogo size={40} />
       </div>
@@ -933,7 +933,7 @@ function RegisterNetworksScreen({ onBack, onDone, i }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 24px 32px", overflowY: "auto" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 4, marginBottom: 18 }}>
         <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Volver
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>{i.back}
         </button>
         <VLogo size={40} />
       </div>
@@ -1212,7 +1212,7 @@ function BuscarScreen({ mode, onReset, onGoProfile, scanResetKey, i }) {
                 <CloseBtn onClick={() => setShowGallery(false)} />
               </div>
               <div style={{ padding: "0 14px 14px", fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-                Elige una imagen de tu galería para identificar a la persona
+                {i.galInstr}
               </div>
               <div style={{ flex: 1, padding: "0 14px 14px", overflow: "auto" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1259,10 +1259,11 @@ function BuscarScreen({ mode, onReset, onGoProfile, scanResetKey, i }) {
 /* ═══════════════════════════════════════════
    MENSAJES SCREEN
 ═══════════════════════════════════════════ */
-function MensajesScreen({ onReset, i }) {
+function MensajesScreen({ onReset, i, openId, setOpenId }) {
   const CONVOS = CONVOS_BASE.map((c, idx) => ({ ...c, pre: i.cPre[idx] }));
   const CHAT_MESSAGES = i.cMsg.map((txt, idx) => ({ me: idx % 2 === 1, t: txt, time: ["20:14","20:15","20:16","20:17","20:18"][idx] }));
-  const [open, setOpen] = useState(null);
+  const open = openId;
+  const setOpen = setOpenId;
   const cv = CONVOS.find(c => c.id === open);
   const total = CONVOS.reduce((s, c) => s + c.u, 0);
 
@@ -1455,7 +1456,7 @@ function ProfileScreen({ mode, onModeChange, onReset, i, lang, onLang }) {
       {/* Reset */}
       <div style={{ padding: "0 14px", marginBottom: 6 }}>
         <button onClick={onReset} style={{ width: "100%", padding: 11, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.4)", fontSize: 11, cursor: "pointer", letterSpacing: "0.04em" }}>
-          ↺ Reiniciar Demo
+          {i.reset}
         </button>
       </div>
 
@@ -1479,7 +1480,7 @@ function ProfileScreen({ mode, onModeChange, onReset, i, lang, onLang }) {
               <div style={{ background: "rgba(157,92,245,0.08)", border: "1px solid rgba(157,92,245,0.22)", borderRadius: 14, padding: "14px 15px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.65 }}>
                   <strong style={{ color: "#fff" }}>{i.launchId(n.label)}</strong><br /><br />
-                  Tu audiencia te encontrará aquí primero. Sin cuentas falsas. Sin fricción.
+                  {i.audMsg}
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 13px", background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.22)", borderRadius: 12, marginBottom: 16 }}>
@@ -1514,14 +1515,16 @@ function VersyoApp() {
   const [tab, setTab] = useState("finder");
   const [mode, setMode] = useState("pro");
   const [scanResetKey, setScanResetKey] = useState(0);
+  const [openChatId, setOpenChatId] = useState(null);
 
   const totalUnread = CONVOS_BASE.reduce((s, c) => s + c.u, 0);
-  const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); };
+  const reset = () => { setScreen("ob"); setTab("finder"); setMode("pro"); setOpenChatId(null); };
 
   const handleTab = (id) => {
     if (id === "finder" && tab === "finder") {
       setScanResetKey(k => k + 1);
     }
+    if (id !== "chat") setOpenChatId(null);
     setTab(id);
   };
 
@@ -1538,10 +1541,10 @@ function VersyoApp() {
         {screen === "reg_nets"    && <RegisterNetworksScreen onBack={() => setScreen("reg_face")} onDone={() => { setScreen("app"); setTab("finder"); }} i={i} />}
         {screen === "app" && (
           <>
-            {tab === "chat"    && <PageHeader title={i.msgs} onReset={reset} />}
+            {tab === "chat" && openChatId === null && <PageHeader title={i.msgs} onReset={reset} />}
             {tab === "profile" && <PageHeader title={i.myV} onReset={reset} />}
             {tab === "finder"  && <BuscarScreen mode={mode} onReset={reset} onGoProfile={() => setTab("profile")} scanResetKey={scanResetKey} i={i} />}
-            {tab === "chat"    && <MensajesScreen onReset={reset} i={i} />}
+            {tab === "chat"    && <MensajesScreen onReset={reset} i={i} openId={openChatId} setOpenId={setOpenChatId} />}
             {tab === "profile" && <ProfileScreen mode={mode} onModeChange={setMode} onReset={reset} i={i} lang={lang} onLang={setLang} />}
             <NavBar tab={tab} onTab={handleTab} unread={totalUnread} i={i} />
           </>
